@@ -656,19 +656,18 @@ S = sanitizeSettings(S);
 applyTheme();
 startGame();
 
-// visual QA hook: index.html?qa=faces flips some cards, ?qa=menu opens the menu,
+// visual QA hook: index.html?qa=faces shows some cards face-up, ?qa=menu opens the menu,
 // ?qa=light forces the light theme for screenshots
 try {
   const qa = new URLSearchParams(location.search).get('qa');
-  if (qa) {
-    if (qa === 'light') document.documentElement.dataset.theme = 'light';
-    setTimeout(() => {
-      if (qa === 'menu') { syncMenu(); menuEl.classList.remove('hidden'); }
-      else if (qa === 'faces' && G) {
-        G.cells.slice(0, 4).forEach((c) => c.el.classList.add('up'));
-      }
-    }, 700);
+  if (qa === 'light') document.documentElement.dataset.theme = 'light';
+  if (qa === 'faces' && G) {
+    // flip synchronously with no animation: the very first painted frame
+    // is already static and face-up (flipping after a timer races screenshots)
+    document.documentElement.classList.add('qa-static');
+    G.cells.slice(0, 4).forEach((c) => c.el.classList.add('up'));
   }
+  if (qa === 'menu') { setTimeout(() => { syncMenu(); menuEl.classList.remove('hidden'); }, 700); }
 } catch (e) {}
 
 })();
