@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Memory Zoo — match the pairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"/>
+<link rel="icon" type="image/png" href="TileSprites/animals/Frog01.png"/>
+</head>
+<body>
+
+<header id="hud">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🐾</span>
+    <div class="titles">
+      <h1>Memory Zoo</h1>
+      <p>match-the-pairs game</p>
+    </div>
+  </div>
+
+  <div id="status" class="status" aria-live="polite"></div>
+
+  <div class="actions">
+    <button class="btn ghost" id="btnRestart" title="Start a new game">↻ New</button>
+    <button class="btn primary" id="btnMenu" title="Open settings menu">⚙ Menu</button>
+    <button class="btn ghost iconbtn" id="btnTheme" title="Switch theme">☀️</button>
+    <button class="btn ghost iconbtn" id="btnSound" title="Toggle sound">🔊</button>
+  </div>
+</header>
+
+<div id="toast" role="status"></div>
+
+<main id="boardWrap">
+  <div id="board" class="board" aria-label="game board"></div>
+</main>
+
+<!-- ================= settings menu ================= -->
+<div id="menu" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="menuTitle">
+  <div class="dialog">
+    <h2 id="menuTitle">Game settings</h2>
+
+    <div class="field">
+      <label>Mode</label>
+      <div class="seg" id="modeSeg" role="group" aria-label="game mode">
+        <button type="button" data-mode="solo">🧑 Solo</button>
+        <button type="button" data-mode="vs">🤖 vs Computer</button>
+      </div>
+      <p class="hint" id="modeHint"></p>
+    </div>
+
+    <div class="field">
+      <label for="rngTotal">Total cards on board: <b id="valTotal"></b></label>
+      <input type="range" id="rngTotal" min="10" max="48" step="2"/>
+      <p class="hint">Even numbers only. Images are used in evenly split pairs.</p>
+    </div>
+
+    <div class="field">
+      <label for="rngImages">Pictures used: <b id="valImages"></b></label>
+      <input type="range" id="rngImages" min="4" max="12" step="1"/>
+      <p class="hint">Pick 4–12 of the 12 animal pictures.</p>
+    </div>
+
+    <div id="diffBox">
+      <h3>Computer difficulty</h3>
+      <div class="presets" id="presetBtns">
+        <button type="button" data-p="50" data-c="3">Easy</button>
+        <button type="button" data-p="70" data-c="5">Normal</button>
+        <button type="button" data-p="90" data-c="7">Hard</button>
+      </div>
+      <div class="field">
+        <label for="rngP">Chance to remember a shown card: <b id="valP"></b></label>
+        <input type="range" id="rngP" min="50" max="95" step="5"/>
+      </div>
+      <div class="field">
+        <label for="rngCap">Remembers at most: <b id="valCap"></b> cards</label>
+        <input type="range" id="rngCap" min="3" max="7" step="1"/>
+        <p class="hint">A newly remembered card pushes a random old one out of memory.</p>
+      </div>
+    </div>
+
+    <div id="bestBox" class="bests"></div>
+
+    <div class="row">
+      <button class="btn primary big" id="btnStart">▶ Start game</button>
+      <button class="btn ghost big" id="btnCloseMenu">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= results ================= -->
+<div id="results" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="resTitle">
+  <div class="dialog small">
+    <h2 id="resTitle"></h2>
+    <div id="resBody"></div>
+    <div class="row">
+      <button class="btn primary big" id="btnPlayAgain">▶ Play again</button>
+      <button class="btn ghost big" id="btnResSettings">⚙ Settings</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
