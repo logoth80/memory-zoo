@@ -31,7 +31,7 @@ class El {
 const byId = {};
 const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages',
   'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'modeHint',
-  'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'btnMenu', 'btnCloseMenu', 'btnStart',
+  'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'btnMenu', 'btnCloseMenu', 'btnStart',
   'btnRestart', 'btnPlayAgain', 'btnResSettings', 'btnSound', 'btnTheme'];
 IDS.forEach((id) => { byId[id] = new El('div'); byId[id].id = id; });
 byId.menu.classList.add('hidden');

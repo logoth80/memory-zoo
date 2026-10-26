@@ -41,6 +41,11 @@ bar switches between the dark and light palettes (choice is remembered).
 ## Settings
 - **Total cards:** even numbers, 10–48.
 - **Pictures used:** 4–12 of the 12 animal sprites in `TileSprites/animals/`.
+- **Card back color:** blue (default), burgundy, dark brown, forest green,
+  plum or slate — chosen from swatches in the menu, previewed live on the
+  board behind it, remembered in settings. The paw design, dot pattern and
+  animations stay identical; only the cloth color changes. Works in both
+  light and dark themes.
 - Pictures are used in **evenly split pairs**: with `pairs = total/2` and
   `n` pictures, each picture gets `floor(pairs/n)` pairs and the first
   `pairs mod n` pictures get one extra. Example: 28 cards with 5 pictures →
@@ -62,5 +67,5 @@ bar switches between the dark and light palettes (choice is remembered).
 
 Extras: sound on/off toggle (synthesized, no audio files), dark/light theme
 toggle, Esc closes dialogs, responsive layout for smaller screens,
-`index.html?qa=menu` / `?qa=faces` / `?qa=light` debug views used for the
-screenshots above.
+`index.html?qa=menu` / `?qa=faces` / `?qa=light` / `?back=burgundy` debug
+views used for the screenshots above.

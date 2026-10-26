@@ -34,7 +34,8 @@ const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
 const LS_SETTINGS = 'memoryzoo.settings.v1';
 const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images" combo
 
-const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark' };
+const BACKS = ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'];
+const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue' };
 
 // ------------------------------------------------ helpers ---
 const $ = (s) => document.querySelector(s);
@@ -132,6 +133,8 @@ function sanitizeSettings(raw) {
     cap: clamp(Math.round(raw.cap ?? DEFAULTS.cap), MIN_CAP, MAX_CAP),
     mute: !!raw.mute,
     theme: raw.theme === 'light' ? 'light' : 'dark',
+    backColor: ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'].indexOf(raw.backColor) >= 0
+      ? raw.backColor : 'blue',
   };
   if (s.total % 2) s.total -= 1;
   s.total = Math.max(MIN_TOTAL, s.total);
@@ -505,6 +508,7 @@ function setModeButtons() {
 }
 
 function syncMenu() {
+  applyBackColor();   // keep the swatch selection in sync with settings
   const rngT = $('#rngTotal'), rngI = $('#rngImages');
   rngT.min = String(Math.max(MIN_TOTAL, 2 * S.images));
   rngT.max = String(MAX_TOTAL);
@@ -640,6 +644,23 @@ $('#btnTheme').addEventListener('click', () => {
   sfx.ui();
 });
 
+// card back color (paw design unchanged, only the --back-* palette swaps)
+function applyBackColor() {
+  const root = document.documentElement;
+  if (S.backColor === 'blue') delete root.dataset.back;   // 'blue' = theme default blues
+  else root.dataset.back = S.backColor;
+  for (const b of document.querySelectorAll('#backBtns button'))
+    b.classList.toggle('on', b.dataset.back === S.backColor);
+}
+$('#backBtns').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b || BACKS.indexOf(b.dataset.back) < 0) return;
+  S.backColor = b.dataset.back;
+  saveSettings();
+  applyBackColor();   // applies instantly — the board behind the menu previews it live
+  sfx.ui();
+});
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (!resultsEl.classList.contains('hidden')) resultsEl.classList.add('hidden');
@@ -654,13 +675,16 @@ window.addEventListener('pointerdown', () => sfx.ac(), { once: true });
 updateSoundBtn();
 S = sanitizeSettings(S);
 applyTheme();
+applyBackColor();
 startGame();
 
 // visual QA hook: index.html?qa=faces shows some cards face-up, ?qa=menu opens the menu,
-// ?qa=light forces the light theme for screenshots
+// ?qa=light forces the light theme, ?back=burgundy|brown|forest|plum|slate previews a back color
 try {
   const qa = new URLSearchParams(location.search).get('qa');
+  const bk = new URLSearchParams(location.search).get('back');
   if (qa === 'light') document.documentElement.dataset.theme = 'light';
+  if (BACKS.indexOf(bk) >= 0 && bk !== 'blue') document.documentElement.dataset.back = bk;
   if (qa === 'faces' && G) {
     // flip synchronously with no animation: the very first painted frame
     // is already static and face-up (flipping after a timer races screenshots)

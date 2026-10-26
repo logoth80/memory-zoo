@@ -440,6 +440,34 @@ input[type=range]::-moz-range-thumb{
 .presets button:hover{ background: var(--preset-hover); }
 .presets button.on{ background: #2e9e6b; color: #fff; border-color: #2e9e6b; }
 
+/* card-back color picker */
+.swatches{ display: flex; gap: 10px; flex-wrap: wrap; }
+.sw{
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  border: 2px solid var(--preset-border);
+  cursor: pointer;
+  position: relative;
+  transition: transform .12s ease, box-shadow .15s ease;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.10), 0 2px 6px rgba(0,0,0,.18);
+}
+.sw:hover{ transform: translateY(-2px); }
+.sw.on{ box-shadow: 0 0 0 3px #2e9e6b, inset 0 0 0 2px rgba(255,255,255,.14); }
+.sw.on::after{
+  content: '✓';
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  color: #fff; font-weight: 800; font-size: 19px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.65);
+}
+.sw-blue{ background: linear-gradient(160deg, #4a86c4, #2f6098 55%, #26507e); }
+html[data-theme="dark"] .sw-blue{ background: linear-gradient(160deg, #2d5580, #1a3c60 55%, #142e4a); }
+.sw-burgundy{ background: linear-gradient(160deg, #96394b, #652132 55%, #4b1523); }
+.sw-brown{ background: linear-gradient(160deg, #6f4e2f, #4a3018 55%, #362210); }
+.sw-forest{ background: linear-gradient(160deg, #2e6b4a, #1c4630 55%, #132f22); }
+.sw-plum{ background: linear-gradient(160deg, #5d4470, #3c2a50 55%, #2b1d3b); }
+.sw-slate{ background: linear-gradient(160deg, #4a5763, #2e3a44 55%, #222c34); }
+
 .bests{ margin-top: 16px; }
 .bests .bestrow{
   display: flex;
@@ -487,6 +515,15 @@ input[type=range]::-moz-range-thumb{
 }
 .scorecards .sc b{ display: block; font-size: 32px; }
 .scorecards .sc span{ font-size: 12.5px; font-weight: 700; color: var(--ink-dim); }
+
+/* alternate card-back palettes
+   (declared after the theme blocks, so they override the theme's default blues;
+   the paw, dots, sheen and inner-ring design stay exactly the same) */
+html[data-back="burgundy"]{ --back-a: #96394b; --back-b: #652132; --back-c: #4b1523; }
+html[data-back="brown"]{    --back-a: #6f4e2f; --back-b: #4a3018; --back-c: #362210; }
+html[data-back="forest"]{   --back-a: #2e6b4a; --back-b: #1c4630; --back-c: #132f22; }
+html[data-back="plum"]{     --back-a: #5d4470; --back-b: #3c2a50; --back-c: #2b1d3b; }
+html[data-back="slate"]{    --back-a: #4a5763; --back-b: #2e3a44; --back-c: #222c34; }
 
 /* deterministic first frame for screenshots (?qa=faces) */
 html.qa-static .card{ transition: none !important; }
