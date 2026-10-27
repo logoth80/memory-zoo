@@ -42,7 +42,7 @@ bar switches between the dark and light palettes (choice is remembered).
 
 ## Settings
 - **Total cards:** even numbers, 10–62.
-- **Pictures used:** 4–25 of the 25 animal sprites in `TileSprites/animals/`.
+- **Pictures used:** 4–10, drawn from the 25 animal sprites in `TileSprites/animals/`.
 - **Names on cards:** English or Polski — a language segment in the menu;
   every card carries both labels (`name` / `pl` in `SPRITES`), the switch
   updates cards on the board immediately and is remembered in settings.

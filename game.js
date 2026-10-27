@@ -43,7 +43,7 @@ function spName(sp) { return (S && S.lang === 'pl' && sp.pl) ? sp.pl : sp.name; 
 
 // ------------------------------------------------ limits ----
 const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
-const MIN_IMAGES = 4, MAX_IMAGES = SPRITES.length;
+const MIN_IMAGES = 4, MAX_IMAGES = 10;      // up to 10 of the 25 available animals per game
 const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
 const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
