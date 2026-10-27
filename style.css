@@ -491,11 +491,6 @@ html[data-theme="dark"] .sw-blue{ background: linear-gradient(160deg, #2d5580, #
   margin-top: 6px;
 }
 .bests .bestrow b{ color: var(--bestrow-ink); }
-.bests .empty{ color: var(--ink-dim); font-size: 13px; }
-
-.allbests{ margin-top: 10px; border-collapse: collapse; font-size: 12.5px; width: 100%; }
-.allbests td{ padding: 3px 8px; border-top: 1px solid var(--rowline); }
-.allbests td:last-child{ text-align: right; color: var(--bestrow-ink); font-weight: 700; }
 
 .row{ display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; justify-content: center; }
 

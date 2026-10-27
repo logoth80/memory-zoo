@@ -530,6 +530,7 @@ function setModeButtons() {
     btn.classList.toggle('on', btn.dataset.mode === S.mode);
   });
   $('#diffBox').hidden = S.mode !== 'vs';
+  $('#bestBox').hidden = S.mode !== 'solo';
   $('#modeHint').textContent = S.mode === 'solo'
     ? 'Match pairs yourself — the score counts how many moves you need.'
     : 'Take turns with the computer. A match lets you go again. More pairs wins.';
@@ -564,25 +565,12 @@ function markPreset() {
 }
 
 function renderBests() {
+  // visibility handled by setModeButtons; records only exist for solo play
+  if (S.mode !== 'solo') return;
   const box = $('#bestBox');
-  const cur = S.total + 'x' + S.images;
-  const curBest = scores.solo[cur];
-  let html = '<h3>Your solo records <span class="hint" style="font-weight:400"> (best per cards × pictures combo)</span></h3>';
-  html += '<div class="bestrow cur"><span>Best for this exact setup (' + S.total + ' cards, ' + S.images + ' pictures):</span><b>' +
-          (curBest != null ? curBest + ' moves' : '— not played yet —') + '</b></div>';
-
-  const rows = Object.entries(scores.solo)
-    .map(([k, v]) => { const [t, i] = k.split('x'); return { t: +t, i: +i, v }; })
-    .filter((r) => r.t && r.i)
-    .sort((a, b) => a.t - b.t || a.i - b.i);
-  if (rows.length) {
-    html += '<table class="allbests">' +
-      rows.map((r) => '<tr><td>' + r.t + ' cards × ' + r.i + ' pictures</td><td>' + r.v + ' moves</td></tr>').join('') +
-      '</table>';
-  } else {
-    html += '<p class="empty">No records yet — finish a solo game to set one.</p>';
-  }
-  box.innerHTML = html;
+  const cur = scores.solo[S.total + 'x' + S.images];
+  box.innerHTML = '<div class="bestrow cur"><span>Best for this exact setup (' + S.total + ' cards, ' + S.images + ' pictures):</span><b>' +
+                  (cur != null ? cur + ' moves' : '— not played yet —') + '</b></div>';
 }
 
 $('#btnMenu').addEventListener('click', () => {

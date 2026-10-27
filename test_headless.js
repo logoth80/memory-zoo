@@ -132,6 +132,22 @@ async function playOne(label) {
     byId.btnMenu.listeners['click'][0]();
     const resHidden = byId.results.classList.contains('hidden');
     const menuOpen = !byId.menu.classList.contains('hidden');
+    // records box: solo -> ONLY the exact-config row (no heading, no table);
+    // vs mode -> the whole box is hidden
+    const isSolo = (settings.mode || 'solo') === 'solo';
+    const bb = byId.bestBox;
+    if (isSolo) {
+      if (bb.hidden) { console.error(label, 'FAIL: bestBox hidden in solo mode'); process.exit(1); }
+      if (!bb._html.includes('Best for this exact setup')) { console.error(label, 'FAIL: missing exact-setup best row'); process.exit(1); }
+      if (bb._html.includes('allbests') || bb._html.toLowerCase().includes('your solo records') || bb._html.toLowerCase().includes('no records')) {
+        console.error(label, 'FAIL: records section still renders heading/table'); process.exit(1);
+      }
+      console.log(label, '- records box: exact-setup row only OK');
+    } else if (!bb.hidden) {
+      console.error(label, 'FAIL: bestBox visible in vs mode'); process.exit(1);
+    } else {
+      console.log(label, '- records box hidden in vs mode OK');
+    }
     byId.btnCloseMenu.listeners['click'][0]();
     if (!resHidden || !menuOpen) { console.error(label, 'FAIL: menu press left results popup open (resHidden=' + resHidden + ' menuOpen=' + menuOpen + ')'); process.exit(1); }
     console.log(label, '- menu press closes results popup OK');

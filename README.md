@@ -21,7 +21,8 @@ bar switches between the dark and light palettes (choice is remembered).
 - The score is the **total number of pair-attempts (moves)** — fewer is better.
 - High scores are stored in the browser (localStorage) **for each exact
   "total cards × pictures" combination** — e.g. 48×6, 48×10 and 24×6 each
-  keep their own record. All records are listed in the menu.
+  keep their own record. The menu shows only the best for the currently
+  selected setup (solo mode only; all other records stay stored).
 
 ### 🤖 vs Computer
 - Take turns. A match means the same player goes again; a miss turns both
