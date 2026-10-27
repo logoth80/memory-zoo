@@ -25,7 +25,7 @@ const SPRITES = [
 const IMG_DIR = 'TileSprites/animals/';
 
 // ------------------------------------------------ limits ----
-const MIN_TOTAL = 10, MAX_TOTAL = 48;       // even numbers only
+const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
 const MIN_IMAGES = 4, MAX_IMAGES = 12;
 const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
 const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
@@ -251,9 +251,13 @@ function layout() {
   const wrap = $('#boardWrap');
   const cols = G.cols, rows = G.rows;
   const gap = Math.max(6, Math.min(10, Math.round(window.innerWidth / 140)));
-  const pad = 2 * gap + 24;
-  const availW = wrap.clientWidth - pad;
-  const availH = wrap.clientHeight - pad;
+  const pad = 2 * gap + 62;   // board frame/padding + wrap padding
+  const hud = $('#hud');
+  const hudH = hud ? hud.offsetHeight : 40;
+  // body grows with its content, so wrap.clientHeight alone can be
+  // content-driven — the window is the real budget (9x7 boards overflow otherwise)
+  const availW = Math.min(wrap.clientWidth, window.innerWidth - 24) - pad;
+  const availH = window.innerHeight - hudH - 36 - pad;
   let tile = Math.floor(Math.min((availW - (cols - 1) * gap) / cols,
                                  (availH - (rows - 1) * gap) / rows));
   tile = clamp(tile, 46, 140);
@@ -674,17 +678,31 @@ window.addEventListener('pointerdown', () => sfx.ac(), { once: true });
 // ------------------------------------------------ boot ------
 updateSoundBtn();
 S = sanitizeSettings(S);
+
+// debug view params (used for screenshots/testing, not part of the saved settings):
+// ?qa=menu opens the menu, ?qa=faces flips some cards face-up, ?qa=light forces the
+// light theme, ?back=burgundy|brown|forest|plum|slate previews a back color,
+// ?mode=vs shows the difficulty section, ?total=62 forces a board size
+// (all kept in range/even by sanitizeSettings)
+try {
+  const qp = new URLSearchParams(location.search);
+  if (qp.get('qa') === 'light') S.theme = 'light';
+  const md = qp.get('mode');
+  if (md === 'vs' || md === 'solo') S.mode = md;
+  const bk = qp.get('back');
+  if (bk === 'blue' || BACKS.indexOf(bk) >= 0) S.backColor = bk;
+  const tq = parseInt(qp.get('total'), 10);
+  if (Number.isFinite(tq)) S.total = tq;
+  S = sanitizeSettings(S);
+} catch (e) {}
+
 applyTheme();
 applyBackColor();
 startGame();
 
-// visual QA hook: index.html?qa=faces shows some cards face-up, ?qa=menu opens the menu,
-// ?qa=light forces the light theme, ?back=burgundy|brown|forest|plum|slate previews a back color
+// visual QA hook: faces / menu (light is handled with the params above)
 try {
   const qa = new URLSearchParams(location.search).get('qa');
-  const bk = new URLSearchParams(location.search).get('back');
-  if (qa === 'light') document.documentElement.dataset.theme = 'light';
-  if (BACKS.indexOf(bk) >= 0 && bk !== 'blue') document.documentElement.dataset.back = bk;
   if (qa === 'faces' && G) {
     // flip synchronously with no animation: the very first painted frame
     // is already static and face-up (flipping after a timer races screenshots)

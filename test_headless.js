@@ -43,7 +43,9 @@ const modeBtns = [
 ];
 const presetBtns = [
   { dataset: { p: '50', c: '3' }, classList: new CL() },
+  { dataset: { p: '60', c: '4' }, classList: new CL() },
   { dataset: { p: '70', c: '5' }, classList: new CL() },
+  { dataset: { p: '80', c: '6' }, classList: new CL() },
   { dataset: { p: '90', c: '7' }, classList: new CL() },
 ];
 

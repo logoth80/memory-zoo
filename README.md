@@ -26,7 +26,9 @@ bar switches between the dark and light palettes (choice is remembered).
 ### 🤖 vs Computer
 - Take turns. A match means the same player goes again; a miss turns both
   cards back over and passes the turn.
-- The computer's difficulty (all adjustable, plus Easy/Normal/Hard presets):
+- The computer's difficulty (all adjustable, plus five presets
+  **Novice 50 %/3 · Easy 60 %/4 · Medium 70 %/5 · Expert 80 %/6 ·
+  Master 90 %/7**):
   - **Remember chance:** 50–95 % per shown card. It tries to remember the
     location of every card revealed during play (its own *and* the player's).
   - **Memory size:** 3–7 cards. A newly remembered card evicts a random old
@@ -39,7 +41,7 @@ bar switches between the dark and light palettes (choice is remembered).
 - Whoever took more pairs off the board wins (draw is possible).
 
 ## Settings
-- **Total cards:** even numbers, 10–48.
+- **Total cards:** even numbers, 10–62.
 - **Pictures used:** 4–12 of the 12 animal sprites in `TileSprites/animals/`.
 - **Card back color:** blue (default), burgundy, dark brown, forest green,
   plum or slate — chosen from swatches in the menu, previewed live on the
@@ -53,7 +55,7 @@ bar switches between the dark and light palettes (choice is remembered).
   6+6+6+4+4 = 26 doesn't add up to 28; this game always sums exactly to the
   chosen total and never uses an odd count of a picture).
 - Board layout picks near-square / nice-rectangle grids (46 cards → 8×6 with
-  two random empty spots, etc.).
+  two random empty spots, 62 cards → 9×7 with one, etc.).
 
 ## Files
 | File | Purpose |
@@ -67,5 +69,5 @@ bar switches between the dark and light palettes (choice is remembered).
 
 Extras: sound on/off toggle (synthesized, no audio files), dark/light theme
 toggle, Esc closes dialogs, responsive layout for smaller screens,
-`index.html?qa=menu` / `?qa=faces` / `?qa=light` / `?back=burgundy` debug
-views used for the screenshots above.
+`index.html?qa=menu` / `?qa=faces` / `?qa=light` / `?back=burgundy` /
+`?total=62` debug views used for the screenshots above.
