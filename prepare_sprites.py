@@ -118,6 +118,44 @@ def flood_white_out(im):
     return im
 
 
+def drop_stray_blobs(im):
+    """Keep only the biggest opaque blob (the animal); everything smaller is a
+    leftover watermark-text island or speck that the flood left behind."""
+    w, h = im.size
+    px = im.load()
+    seen = bytearray(w * h)
+    comps = []
+    for i in range(w * h):
+        x0, y0 = i % w, i // w
+        if seen[i] or px[x0, y0][3] < 30:
+            seen[i] = 1
+            continue
+        comp = [i]
+        q = deque([i])
+        seen[i] = 1
+        while q:
+            j = q.popleft()
+            cx, cy = j % w, j // w
+            for nx, ny in ((cx - 1, cy), (cx + 1, cy), (cx, cy - 1), (cx, cy + 1)):
+                k = ny * w + nx
+                if 0 <= nx < w and 0 <= ny < h and not seen[k] and px[nx, ny][3] >= 30:
+                    seen[k] = 1
+                    comp.append(k)
+                    q.append(k)
+        comps.append(comp)
+    if len(comps) < 2:
+        return im
+    comps.sort(key=len, reverse=True)
+    dropped = 0
+    for comp in comps[1:]:
+        for j in comp:
+            x, y = j % w, j // w
+            px[x, y] = px[x, y][:3] + (0,)
+            dropped += 1
+    print("   dropped", dropped, "px in", len(comps) - 1, "stray blob(s)")
+    return im
+
+
 def process(src, dst, special=False):
     im = Image.open(src)
     im.load()
@@ -126,8 +164,10 @@ def process(src, dst, special=False):
     if special:
         im = strip_black_bars(im)
         im = flood_bg(im)
+        im = drop_stray_blobs(im)
     elif not has_alpha(im):
         im = flood_white_out(im)
+        im = drop_stray_blobs(im)
     bbox = im.getbbox()
     if not bbox:
         print("!! fully transparent:", src)
