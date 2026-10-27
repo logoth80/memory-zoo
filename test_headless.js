@@ -31,7 +31,7 @@ class El {
 const byId = {};
 const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages',
   'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'modeHint',
-  'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'btnMenu', 'btnCloseMenu', 'btnStart',
+  'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'langSeg', 'btnMenu', 'btnCloseMenu', 'btnStart',
   'btnRestart', 'btnPlayAgain', 'btnResSettings', 'btnSound', 'btnTheme'];
 IDS.forEach((id) => { byId[id] = new El('div'); byId[id].id = id; });
 byId.menu.classList.add('hidden');
@@ -48,10 +48,17 @@ const presetBtns = [
   { dataset: { p: '80', c: '6' }, classList: new CL() },
   { dataset: { p: '90', c: '7' }, classList: new CL() },
 ];
+const langBtns = [
+  { dataset: { lang: 'en' }, classList: new CL() },
+  { dataset: { lang: 'pl' }, classList: new CL() },
+];
 
 global.document = {
   querySelector: (sel) => byId[sel.replace('#', '')] || null,
-  querySelectorAll: (sel) => sel === '#modeSeg button' ? modeBtns : sel === '#presetBtns button' ? presetBtns : [],
+  querySelectorAll: (sel) =>
+    sel === '#modeSeg button' ? modeBtns :
+    sel === '#presetBtns button' ? presetBtns :
+    sel === '#langSeg button' ? langBtns : [],
   createElement: (tag) => new El(tag),
   addEventListener() {},
   documentElement: { style: { setProperty() {} }, dataset: {} },
@@ -146,6 +153,28 @@ async function playOne(label) {
   await wait(50);
   ok = await playOne('game2');
   if (!ok) { console.error('FAIL: game 2 did not finish'); process.exit(1); }
+
+  // switch card names to Polish: segment marks itself, setting persists,
+  // a fresh board labels every card with a Polish name
+  byId.langSeg.listeners['click'][0]({ target: { closest: () => langBtns[1] } });
+  if (!langBtns[1].classList.contains('on')) { console.error('FAIL: Polski button not marked'); process.exit(1); }
+  if (JSON.parse(store['memoryzoo.settings.v1']).lang !== 'pl') { console.error('FAIL: lang=pl not persisted'); process.exit(1); }
+  byId.btnRestart.listeners['click'][0]();
+  await wait(50);
+  const PL_NAMES = new Set(['Króliczek', 'Kurczak', 'Żaba', 'Koziołek', 'Gęś', 'Świnka morska', 'Chomik',
+    'Kotek', 'Lwiątko', 'Niedźwiedź polarny', 'Szczeniak', 'Królik', 'Wielbłąd', 'Słoń', 'Rybka', 'Kangur',
+    'Koala', 'Panda', 'Papuga', 'Prosiak', 'Rekin', 'Tygrysek', 'Tukan', 'Żółw', 'Wilk']);
+  let labels = [], bad = [];
+  for (const c of byId.board.children.filter((c) => c.tag === 'button')) {
+    const m = /class="nm[^"]*">([^<]+)</.exec(c.innerHTML);
+    if (!m) { bad.push('no label'); continue; }
+    labels.push(m[1]);
+    if (!PL_NAMES.has(m[1])) bad.push(m[1]);
+  }
+  if (bad.length) { console.error('FAIL: non-Polish card labels ->', bad.join(', ')); process.exit(1); }
+  console.log('language switch: all', labels.length, 'cards labeled:', [...new Set(labels)].join(', '));
+  byId.langSeg.listeners['click'][0]({ target: { closest: () => langBtns[0] } });
+  await wait(50);
 
   const isSolo = (settings.mode || 'solo') === 'solo';
   const raw = store['memoryzoo.scores.v2'];

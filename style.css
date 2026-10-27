@@ -294,11 +294,19 @@ body{
 .face.front .nm{
   position: absolute;
   left: 0; right: 0; bottom: 4%;
+  padding: 0 3px;
   text-align: center;
   font-weight: 800;
   font-size: calc(var(--tile) * 0.105);
+  line-height: 1.06;
+  text-wrap: balance;
   color: var(--front-ink);
   letter-spacing: .3px;
+}
+/* longer names (e.g. "Niedźwiedź polarny") get a smaller size and may wrap */
+.face.front .nm.nm-long{
+  font-size: calc(var(--tile) * 0.075);
+  letter-spacing: 0;
 }
 
 /* selected hint on face-up singles */

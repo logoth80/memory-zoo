@@ -8,25 +8,42 @@
 (function () {
 
 // ------------------------------------------------ sprites ---
+// name = English label, pl = Polish label (the menu has a language switch)
 const SPRITES = [
-  { id: 'Bunny01',    name: 'Bunny' },
-  { id: 'Chicken01',  name: 'Chicken' },
-  { id: 'Frog01',     name: 'Frog' },
-  { id: 'Goat01',     name: 'Goat' },
-  { id: 'Goose01',    name: 'Goose' },
-  { id: 'Guinea01',   name: 'Guinea Pig' },
-  { id: 'Hamster01',  name: 'Hamster' },
-  { id: 'Kitten01',   name: 'Kitten' },
-  { id: 'LionCub01',  name: 'Lion Cub' },
-  { id: 'PolarCub01', name: 'Polar Bear' },
-  { id: 'Puppy01',    name: 'Puppy' },
-  { id: 'Rabbit01',   name: 'Rabbit' },
+  { id: 'Bunny01',    name: 'Bunny',      pl: 'Króliczek' },
+  { id: 'Chicken01',  name: 'Chicken',    pl: 'Kurczak' },
+  { id: 'Frog01',     name: 'Frog',       pl: 'Żaba' },
+  { id: 'Goat01',     name: 'Goat',       pl: 'Koziołek' },
+  { id: 'Goose01',    name: 'Goose',      pl: 'Gęś' },
+  { id: 'Guinea01',   name: 'Guinea Pig', pl: 'Świnka morska' },
+  { id: 'Hamster01',  name: 'Hamster',    pl: 'Chomik' },
+  { id: 'Kitten01',   name: 'Kitten',     pl: 'Kotek' },
+  { id: 'LionCub01',  name: 'Lion Cub',   pl: 'Lwiątko' },
+  { id: 'PolarCub01', name: 'Polar Bear', pl: 'Niedźwiedź polarny' },
+  { id: 'Puppy01',    name: 'Puppy',      pl: 'Szczeniak' },
+  { id: 'Rabbit01',   name: 'Rabbit',     pl: 'Królik' },
+  { id: 'Camel01',    name: 'Camel',      pl: 'Wielbłąd' },
+  { id: 'Elephant01', name: 'Elephant',   pl: 'Słoń' },
+  { id: 'Fish01',     name: 'Fish',       pl: 'Rybka' },
+  { id: 'Kangaroo01', name: 'Kangaroo',   pl: 'Kangur' },
+  { id: 'Koala01',    name: 'Koala',      pl: 'Koala' },
+  { id: 'Panda01',    name: 'Panda',      pl: 'Panda' },
+  { id: 'Parrot01',   name: 'Parrot',     pl: 'Papuga' },
+  { id: 'Piglet01',   name: 'Piglet',     pl: 'Prosiak' },
+  { id: 'Shark01',    name: 'Shark',      pl: 'Rekin' },
+  { id: 'TigerCub01', name: 'Tiger Cub',  pl: 'Tygrysek' },
+  { id: 'Toucan01',   name: 'Toucan',     pl: 'Tukan' },
+  { id: 'Turtle01',   name: 'Turtle',     pl: 'Żółw' },
+  { id: 'Wolf01',     name: 'Wolf',       pl: 'Wilk' },
 ];
 const IMG_DIR = 'TileSprites/animals/';
 
+// localized label for a sprite, per the current language setting
+function spName(sp) { return (S && S.lang === 'pl' && sp.pl) ? sp.pl : sp.name; }
+
 // ------------------------------------------------ limits ----
 const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
-const MIN_IMAGES = 4, MAX_IMAGES = 12;
+const MIN_IMAGES = 4, MAX_IMAGES = SPRITES.length;
 const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
 const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
@@ -35,7 +52,8 @@ const LS_SETTINGS = 'memoryzoo.settings.v1';
 const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images" combo
 
 const BACKS = ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'];
-const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue' };
+const LANGS = ['en', 'pl'];
+const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue', lang: 'en' };
 
 // ------------------------------------------------ helpers ---
 const $ = (s) => document.querySelector(s);
@@ -135,6 +153,7 @@ function sanitizeSettings(raw) {
     theme: raw.theme === 'light' ? 'light' : 'dark',
     backColor: ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'].indexOf(raw.backColor) >= 0
       ? raw.backColor : 'blue',
+    lang: raw.lang === 'pl' ? 'pl' : 'en',
   };
   if (s.total % 2) s.total -= 1;
   s.total = Math.max(MIN_TOTAL, s.total);
@@ -205,6 +224,7 @@ function startGame() {
     }
     const id = deck[di++];
     const sp = SPRITES.find((s) => s.id === id);
+    const label = spName(sp);
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'cell';
@@ -213,11 +233,15 @@ function startGame() {
     btn.innerHTML =
       '<div class="card">' +
         '<div class="face back"></div>' +
-        '<div class="face front"><img alt="' + sp.name + '" draggable="false" src="' + IMG_DIR + id + '.png">' +
-        '<span class="nm">' + sp.name + '</span></div>' +
+        '<div class="face front"><img alt="' + label + '" draggable="false" src="' + IMG_DIR + id + '.png">' +
+        '<span class="nm' + (label.length > 11 ? ' nm-long' : '') + '">' + label + '</span></div>' +
       '</div>';
     boardEl.appendChild(btn);
-    cells.push({ idx: pos, el: btn, img: id, faceup: false, gone: false });
+    cells.push({
+      idx: pos, el: btn, img: id, sp, faceup: false, gone: false,
+      nmEl: btn.querySelector ? btn.querySelector('.nm') : null,
+      imgEl: btn.querySelector ? btn.querySelector('img') : null,
+    });
   }
 
   // preload the used pictures so nothing pops in mid-game
@@ -513,6 +537,7 @@ function setModeButtons() {
 
 function syncMenu() {
   applyBackColor();   // keep the swatch selection in sync with settings
+  markLang();         // keep the language segment in sync with settings
   const rngT = $('#rngTotal'), rngI = $('#rngImages');
   rngT.min = String(Math.max(MIN_TOTAL, 2 * S.images));
   rngT.max = String(MAX_TOTAL);
@@ -574,6 +599,32 @@ $('#modeSeg').addEventListener('click', (e) => {
   S.mode = b.dataset.mode === 'vs' ? 'vs' : 'solo';
   saveSettings(); setModeButtons(); sfx.ui();
 });
+
+$('#langSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  S.lang = b.dataset.lang === 'pl' ? 'pl' : 'en';
+  saveSettings(); markLang(); relabelCards(); sfx.ui();
+});
+
+function markLang() {
+  document.querySelectorAll('#langSeg button').forEach((b) => {
+    b.classList.toggle('on', b.dataset.lang === S.lang);
+  });
+}
+
+// swap the name labels on cards that are already on the board
+function relabelCards() {
+  if (!G) return;
+  G.cells.forEach((c) => {
+    const label = spName(c.sp);
+    if (c.nmEl) {
+      c.nmEl.textContent = label;
+      c.nmEl.classList.toggle('nm-long', label.length > 11);
+    }
+    if (c.imgEl) c.imgEl.alt = label;
+  });
+}
 
 $('#rngTotal').addEventListener('input', (e) => {
   S.total = clamp(parseInt(e.target.value, 10) || MIN_TOTAL, MIN_TOTAL, MAX_TOTAL);
@@ -682,17 +733,22 @@ S = sanitizeSettings(S);
 // debug view params (used for screenshots/testing, not part of the saved settings):
 // ?qa=menu opens the menu, ?qa=faces flips some cards face-up, ?qa=light forces the
 // light theme, ?back=burgundy|brown|forest|plum|slate previews a back color,
-// ?mode=vs shows the difficulty section, ?total=62 forces a board size
-// (all kept in range/even by sanitizeSettings)
+// ?mode=vs shows the difficulty section, ?total=62 forces a board size,
+// ?images=10 picks that many pictures, ?lang=pl shows Polish names
+// (all kept in range by sanitizeSettings)
 try {
   const qp = new URLSearchParams(location.search);
   if (qp.get('qa') === 'light') S.theme = 'light';
   const md = qp.get('mode');
   if (md === 'vs' || md === 'solo') S.mode = md;
+  const lg = qp.get('lang');
+  if (lg === 'pl' || lg === 'en') S.lang = lg;
   const bk = qp.get('back');
   if (bk === 'blue' || BACKS.indexOf(bk) >= 0) S.backColor = bk;
   const tq = parseInt(qp.get('total'), 10);
   if (Number.isFinite(tq)) S.total = tq;
+  const iq = parseInt(qp.get('images'), 10);
+  if (Number.isFinite(iq)) S.images = iq;
   S = sanitizeSettings(S);
 } catch (e) {}
 
@@ -708,6 +764,10 @@ try {
     // is already static and face-up (flipping after a timer races screenshots)
     document.documentElement.classList.add('qa-static');
     G.cells.slice(0, 4).forEach((c) => c.el.classList.add('up'));
+  }
+  if (qa === 'all' && G) {
+    document.documentElement.classList.add('qa-static');
+    G.cells.forEach((c) => c.el.classList.add('up'));
   }
   if (qa === 'menu') { setTimeout(() => { syncMenu(); menuEl.classList.remove('hidden'); }, 700); }
 } catch (e) {}

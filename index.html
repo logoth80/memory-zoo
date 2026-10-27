@@ -60,8 +60,17 @@
 
     <div class="field">
       <label for="rngImages">Pictures used: <b id="valImages"></b></label>
-      <input type="range" id="rngImages" min="4" max="12" step="1"/>
-      <p class="hint">Pick 4–12 of the 12 animal pictures.</p>
+      <input type="range" id="rngImages" min="4" max="25" step="1"/>
+      <p class="hint">Pick 4–25 of the 25 animal pictures.</p>
+    </div>
+
+    <div class="field">
+      <label>Names on cards</label>
+      <div class="seg" id="langSeg" role="group" aria-label="card name language">
+        <button type="button" data-lang="en">🇬🇧 English</button>
+        <button type="button" data-lang="pl">🇵🇱 Polski</button>
+      </div>
+      <p class="hint">Language of the animal names under the pictures. Zmiana jest natychmiastowa.</p>
     </div>
 
     <div class="field">
