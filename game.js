@@ -10,7 +10,6 @@
 // ------------------------------------------------ sprites ---
 // name = English label, pl = Polish label (the menu has a language switch)
 const SPRITES = [
-  { id: 'Bunny01',    name: 'Bunny',      pl: 'Króliczek' },
   { id: 'Chicken01',  name: 'Chicken',    pl: 'Kurczak' },
   { id: 'Frog01',     name: 'Frog',       pl: 'Żaba' },
   { id: 'Goat01',     name: 'Goat',       pl: 'Koziołek' },
@@ -35,6 +34,13 @@ const SPRITES = [
   { id: 'Toucan01',   name: 'Toucan',     pl: 'Tukan' },
   { id: 'Turtle01',   name: 'Turtle',     pl: 'Żółw' },
   { id: 'Wolf01',     name: 'Wolf',       pl: 'Wilk' },
+  { id: 'Horse01',    name: 'Horse',      pl: 'Koń' },
+  { id: 'Seal01',     name: 'Seal',       pl: 'Foka' },
+  { id: 'Penguin01',  name: 'Penguin',    pl: 'Pingwin' },
+  { id: 'Gecko01',    name: 'Gecko',      pl: 'Gekon' },
+  { id: 'Chameleon01', name: 'Chameleon', pl: 'Kameleon' },
+  { id: 'Rat01',      name: 'Rat',        pl: 'Szczur' },
+  { id: 'GreenSnake01', name: 'Green Snake', pl: 'Zielony wąż' },
 ];
 const IMG_DIR = 'TileSprites/animals/';
 
@@ -43,7 +49,7 @@ function spName(sp) { return (S && S.lang === 'pl' && sp.pl) ? sp.pl : sp.name; 
 
 // ------------------------------------------------ limits ----
 const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
-const MIN_IMAGES = 4, MAX_IMAGES = 10;      // up to 10 of the 25 available animals per game
+const MIN_IMAGES = 4, MAX_IMAGES = 10;      // up to 10 of the 31 available animals per game
 const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
 const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;

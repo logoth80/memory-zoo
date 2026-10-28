@@ -1,5 +1,5 @@
 # Cuts out the new animal photos and writes game sprites to TileSprites/animals/.
-# Reads source files from _sprites_in/ (raw copies), deletes them when done.
+# Reads source files from TileSprites/raw/ (raw copies kept in the repo).
 # Re-run:  python prepare_sprites.py
 import os
 from collections import deque
@@ -26,6 +26,13 @@ JOBS = [
     ("parrot.png",    "Parrot01"),
     ("tiger.webp",    "TigerCub01"),
     ("frog.png",      "Frog01"),     # replaces the old frog sprite
+    ("horse.webp",    "Horse01"),
+    ("seal.webp",     "Seal01"),
+    ("penguin.webp",  "Penguin01"),
+    ("gecko.webp",    "Gecko01"),
+    ("chameleon.webp","Chameleon01"),
+    ("rat.webp",      "Rat01"),
+    ("green_snake.webp", "GreenSnake01"),
 ]
 
 SPECIAL = {"frog.png"}   # black letterbox bars + solid teal background

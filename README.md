@@ -43,7 +43,7 @@ bar switches between the dark and light palettes (choice is remembered).
 
 ## Settings
 - **Total cards:** even numbers, 10–62.
-- **Pictures used:** 4–10, drawn from the 25 animal sprites in `TileSprites/animals/`.
+- **Pictures used:** 4–10, drawn from the 31 animal sprites in `TileSprites/animals/`.
 - **Names on cards:** English or Polski — a language segment in the menu;
   every card carries both labels (`name` / `pl` in `SPRITES`), the switch
   updates cards on the board immediately and is remembered in settings.
@@ -68,7 +68,7 @@ bar switches between the dark and light palettes (choice is remembered).
 | `style.css` | felt board, paw-print card backs, flip/match/shake animations, menu |
 | `game.js` | game logic, computer AI, high scores, WebAudio sound effects |
 | `test_headless.js` | dev smoke-test: plays full games in a stub DOM (`node test_headless.js '{"mode":"vs","total":16,"images":6}'`) |
-| `TileSprites/animals/` | the 25 card pictures (drop in more PNGs and add an entry with `id`, English `name` and Polish `pl` to `SPRITES` at the top of `game.js` to use them) |
+| `TileSprites/animals/` | the 31 card pictures (drop in more PNGs and add an entry with `id`, English `name` and Polish `pl` to `SPRITES` at the top of `game.js` to use them) |
 | `prepare_sprites.py` | dev helper: cuts raw photos from `TileSprites/raw/` into transparent, square `*01.png` sprites (`python prepare_sprites.py`) |
 | `qa_*.png` | visual QA screenshots (safe to delete) |
 

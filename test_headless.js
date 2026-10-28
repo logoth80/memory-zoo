@@ -177,9 +177,10 @@ async function playOne(label) {
   if (JSON.parse(store['memoryzoo.settings.v1']).lang !== 'pl') { console.error('FAIL: lang=pl not persisted'); process.exit(1); }
   byId.btnRestart.listeners['click'][0]();
   await wait(50);
-  const PL_NAMES = new Set(['Króliczek', 'Kurczak', 'Żaba', 'Koziołek', 'Gęś', 'Świnka morska', 'Chomik',
+  const PL_NAMES = new Set(['Kurczak', 'Żaba', 'Koziołek', 'Gęś', 'Świnka morska', 'Chomik',
     'Kotek', 'Lwiątko', 'Niedźwiedź polarny', 'Szczeniak', 'Królik', 'Wielbłąd', 'Słoń', 'Rybka', 'Kangur',
-    'Koala', 'Panda', 'Papuga', 'Prosiak', 'Rekin', 'Tygrysek', 'Tukan', 'Żółw', 'Wilk']);
+    'Koala', 'Panda', 'Papuga', 'Prosiak', 'Rekin', 'Tygrysek', 'Tukan', 'Żółw', 'Wilk',
+    'Koń', 'Foka', 'Pingwin', 'Gekon', 'Kameleon', 'Szczur', 'Zielony wąż']);
   let labels = [], bad = [];
   for (const c of byId.board.children.filter((c) => c.tag === 'button')) {
     const m = /class="nm[^"]*">([^<]+)</.exec(c.innerHTML);
