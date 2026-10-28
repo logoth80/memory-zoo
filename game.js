@@ -47,9 +47,13 @@ const IMG_DIR = 'TileSprites/animals/';
 // localized label for a sprite, per the current language setting
 function spName(sp) { return (S && S.lang === 'pl' && sp.pl) ? sp.pl : sp.name; }
 
+// pictures not crossed out in the Pictures window — the only ones games may use
+function activeSprites() { return SPRITES.filter((sp) => S.blocked.indexOf(sp.id) < 0); }
+
 // ------------------------------------------------ limits ----
 const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
 const MIN_IMAGES = 4, MAX_IMAGES = 10;      // up to 10 of the 31 available animals per game
+const MIN_ACTIVE = 10;                      // pictures may be crossed out, but at least this many must stay
 const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
 const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
@@ -59,7 +63,7 @@ const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images" c
 
 const BACKS = ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'];
 const LANGS = ['en', 'pl'];
-const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue', lang: 'en' };
+const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue', lang: 'en', blocked: [] };
 
 // ------------------------------------------------ helpers ---
 const $ = (s) => document.querySelector(s);
@@ -160,10 +164,13 @@ function sanitizeSettings(raw) {
     backColor: ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'].indexOf(raw.backColor) >= 0
       ? raw.backColor : 'blue',
     lang: raw.lang === 'pl' ? 'pl' : 'en',
+    blocked: Array.isArray(raw.blocked)
+      ? [...new Set(raw.blocked.filter((id) => SPRITES.some((sp) => sp.id === id)))].slice(0, SPRITES.length - MIN_ACTIVE)
+      : [],
   };
   if (s.total % 2) s.total -= 1;
   s.total = Math.max(MIN_TOTAL, s.total);
-  s.images = Math.min(s.images, Math.floor(s.total / 2), MAX_IMAGES);
+  s.images = Math.min(s.images, Math.floor(s.total / 2), SPRITES.length - s.blocked.length, MAX_IMAGES);
   s.images = Math.max(MIN_IMAGES, s.images);
   return s;
 }
@@ -194,8 +201,8 @@ function startGame() {
   const gen = ++GAME_GEN;
   const { total, images } = S;
 
-  // choose pictures, then distribute pairs as evenly as possible
-  const chosen = shuffle(SPRITES.slice()).slice(0, images);
+  // choose pictures from the ones not crossed out, then distribute pairs as evenly as possible
+  const chosen = shuffle(activeSprites()).slice(0, images);
   const pairsTotal = total / 2;
   const base = Math.floor(pairsTotal / images);
   const extra = pairsTotal % images;      // first `extra` images get one more pair
@@ -555,6 +562,7 @@ function syncMenu() {
   rngI.value = String(S.images);
   $('#valTotal').textContent = S.total + ' cards';
   $('#valImages').textContent = S.images + ' pictures';
+  $('#imgHint').textContent = 'Pick 4–10 of the ' + (SPRITES.length - S.blocked.length) + ' available animal pictures.';
   $('#rngP').value = String(S.p);
   $('#rngCap').value = String(S.cap);
   $('#valP').textContent = S.p + '%';
@@ -586,6 +594,61 @@ $('#btnMenu').addEventListener('click', () => {
   menuEl.classList.remove('hidden');
 });
 $('#btnCloseMenu').addEventListener('click', () => { sfx.ui(); menuEl.classList.add('hidden'); });
+
+// --------------------------------------------- pictures picker ---
+// cross pictures out of the game pool; at least MIN_ACTIVE must stay available
+const picEl = $('#picOverlay');
+function updatePicCount(warn) {
+  const active = SPRITES.length - S.blocked.length;
+  const el = $('#picCount');
+  el.textContent = S.blocked.length + ' crossed out · ' + active + ' available (at least ' + MIN_ACTIVE + ' required)';
+  el.classList.toggle('warn', !!warn);
+}
+function renderPicPicker() {
+  $('#picGrid').innerHTML = SPRITES.map((sp) => {
+    const off = S.blocked.indexOf(sp.id) >= 0;
+    return '<button type="button" class="picTile' + (off ? ' off' : '') + '" data-id="' + sp.id + '"' +
+      ' aria-pressed="' + off + '" title="' + spName(sp) + '">' +
+      '<img src="' + IMG_DIR + sp.id + '.png" alt="' + spName(sp) + '"/>' +
+      '<span class="picNm">' + spName(sp) + '</span>' +
+      '<span class="picX" aria-hidden="true">✕</span></button>';
+  }).join('');
+  updatePicCount();
+}
+$('#btnPictures').addEventListener('click', () => {
+  sfx.ui();
+  resultsEl.classList.add('hidden');   // same courtesy as the settings menu
+  renderPicPicker();
+  picEl.classList.remove('hidden');
+});
+$('#btnPicClose').addEventListener('click', () => { sfx.ui(); picEl.classList.add('hidden'); });
+$('#btnPicAll').addEventListener('click', () => {
+  S.blocked = [];
+  saveSettings(); renderPicPicker(); sfx.ui();
+});
+$('#picGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('.picTile');
+  if (!b) return;
+  const id = b.dataset.id;
+  const at = S.blocked.indexOf(id);
+  if (at >= 0) {
+    S.blocked.splice(at, 1);
+  } else {
+    if (SPRITES.length - S.blocked.length <= MIN_ACTIVE) {
+      // the last 10 are protected: refuse, flash the counter, no sound-error spam
+      updatePicCount(true);
+      setTimeout(() => updatePicCount(false), 800);
+      return;
+    }
+    S.blocked.push(id);
+  }
+  const off = S.blocked.indexOf(id) >= 0;
+  b.classList.toggle('off', off);
+  b.setAttribute('aria-pressed', off);
+  saveSettings();
+  updatePicCount();
+  sfx.ui();
+});
 
 $('#modeSeg').addEventListener('click', (e) => {
   const b = e.target.closest('button');
@@ -713,6 +776,7 @@ $('#backBtns').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     if (!resultsEl.classList.contains('hidden')) resultsEl.classList.add('hidden');
+    else if (!picEl.classList.contains('hidden')) picEl.classList.add('hidden');
     else if (!menuEl.classList.contains('hidden')) menuEl.classList.add('hidden');
   }
 });
@@ -725,10 +789,12 @@ updateSoundBtn();
 S = sanitizeSettings(S);
 
 // debug view params (used for screenshots/testing, not part of the saved settings):
-// ?qa=menu opens the menu, ?qa=faces flips some cards face-up, ?qa=light forces the
-// light theme, ?back=burgundy|brown|forest|plum|slate previews a back color,
-// ?mode=vs shows the difficulty section, ?total=62 forces a board size,
-// ?images=10 picks that many pictures, ?lang=pl shows Polish names
+// ?qa=menu opens the menu, ?qa=pics opens the pictures picker,
+// ?qa=faces flips some cards face-up, ?qa=all flips every card,
+// ?qa=light forces the light theme, ?back=burgundy|brown|forest|plum|slate
+// previews a back color, ?mode=vs shows the difficulty section, ?total=62
+// forces a board size, ?images=10 picks that many pictures, ?lang=pl shows
+// Polish names, ?block=Panda01,Wolf01 crosses pictures out
 // (all kept in range by sanitizeSettings)
 try {
   const qp = new URLSearchParams(location.search);
@@ -743,6 +809,8 @@ try {
   if (Number.isFinite(tq)) S.total = tq;
   const iq = parseInt(qp.get('images'), 10);
   if (Number.isFinite(iq)) S.images = iq;
+  const blq = qp.get('block');
+  if (blq) S.blocked = String(blq).split(',').map((x) => x.trim()).filter(Boolean);
   S = sanitizeSettings(S);
 } catch (e) {}
 
@@ -764,6 +832,7 @@ try {
     G.cells.forEach((c) => c.el.classList.add('up'));
   }
   if (qa === 'menu') { setTimeout(() => { syncMenu(); menuEl.classList.remove('hidden'); }, 700); }
+  if (qa === 'pics') { setTimeout(() => { renderPicPicker(); picEl.classList.remove('hidden'); }, 700); }
 } catch (e) {}
 
 })();

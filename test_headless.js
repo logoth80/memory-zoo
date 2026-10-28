@@ -29,13 +29,15 @@ class El {
 }
 
 const byId = {};
-const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages',
+const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages', 'imgHint',
   'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'modeHint',
+  'picOverlay', 'picGrid', 'picCount', 'btnPictures', 'btnPicAll', 'btnPicClose',
   'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'langSeg', 'btnMenu', 'btnCloseMenu', 'btnStart',
   'btnRestart', 'btnPlayAgain', 'btnResSettings', 'btnSound', 'btnTheme'];
 IDS.forEach((id) => { byId[id] = new El('div'); byId[id].id = id; });
 byId.menu.classList.add('hidden');
 byId.results.classList.add('hidden');
+byId.picOverlay.classList.add('hidden');
 
 const modeBtns = [
   { dataset: { mode: 'solo' }, classList: new CL() },
@@ -192,6 +194,43 @@ async function playOne(label) {
   console.log('language switch: all', labels.length, 'cards labeled:', [...new Set(labels)].join(', '));
   byId.langSeg.listeners['click'][0]({ target: { closest: () => langBtns[0] } });
   await wait(50);
+
+  // Pictures picker: open it, cross out everything except 10, the last 10 are
+  // protected from crossing out, a restarted board uses ONLY the kept pictures,
+  // "Show all" restores the full pool.
+  const ALL_IDS = ['Chicken01', 'Frog01', 'Goat01', 'Goose01', 'Guinea01', 'Hamster01', 'Kitten01',
+    'LionCub01', 'PolarCub01', 'Puppy01', 'Rabbit01', 'Camel01', 'Elephant01', 'Fish01', 'Kangaroo01',
+    'Koala01', 'Panda01', 'Parrot01', 'Piglet01', 'Shark01', 'TigerCub01', 'Toucan01', 'Turtle01',
+    'Wolf01', 'Horse01', 'Seal01', 'Penguin01', 'Gecko01', 'Chameleon01', 'Rat01', 'GreenSnake01'];
+  const clickTile = (id) => byId.picGrid.listeners['click'][0]({
+    target: { closest: (sel) => (sel === '.picTile' ? { dataset: { id }, classList: new CL(), setAttribute() {} } : null) },
+  });
+  byId.btnPictures.listeners['click'][0]();
+  if (byId.picOverlay.classList.contains('hidden')) { console.error('FAIL: Pictures button did not open the picker'); process.exit(1); }
+  if (!byId.picGrid._html.includes('data-id="GreenSnake01"')) { console.error('FAIL: picker grid not populated'); process.exit(1); }
+  const KEEP = new Set(['Chicken01', 'Frog01', 'Goat01', 'Goose01', 'Hamster01', 'Kitten01', 'Puppy01', 'Rat01', 'Seal01', 'Wolf01']);
+  ALL_IDS.filter((id) => !KEEP.has(id)).forEach(clickTile);   // 21 cross-outs -> exactly 10 stay
+  clickTile('Wolf01');                                        // 22nd must be refused
+  let blockedNow = JSON.parse(store['memoryzoo.settings.v1']).blocked || [];
+  if (blockedNow.length !== ALL_IDS.length - KEEP.size) { console.error('FAIL: unexpected blocked count', blockedNow.length); process.exit(1); }
+  if (blockedNow.includes('Wolf01')) { console.error('FAIL: last-10 protection failed'); process.exit(1); }
+  console.log('pictures picker:', blockedNow.length, 'crossed out, last 10 protected OK');
+  byId.btnRestart.listeners['click'][0]();
+  await wait(50);
+  const usedIds = new Set();
+  for (const c of byId.board.children.filter((c) => c.tag === 'button')) {
+    const m = /animals\/([A-Za-z0-9]+)\.png/.exec(c.innerHTML);
+    if (!m) { console.error('FAIL: card without sprite image'); process.exit(1); }
+    usedIds.add(m[1]);
+  }
+  for (const id of usedIds) if (!KEEP.has(id)) { console.error('FAIL: crossed-out picture used on board:', id); process.exit(1); }
+  console.log('restarted board uses only kept pictures:', [...usedIds].sort().join(', '));
+  byId.btnPicAll.listeners['click'][0]();
+  blockedNow = JSON.parse(store['memoryzoo.settings.v1']).blocked || [];
+  if (blockedNow.length) { console.error('FAIL: Show all did not clear blocks'); process.exit(1); }
+  byId.btnPicClose.listeners['click'][0]();
+  if (!byId.picOverlay.classList.contains('hidden')) { console.error('FAIL: Close did not hide picker'); process.exit(1); }
+  console.log('show all + close OK');
 
   const isSolo = (settings.mode || 'solo') === 'solo';
   const raw = store['memoryzoo.scores.v2'];

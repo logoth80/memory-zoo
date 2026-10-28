@@ -27,6 +27,7 @@
   <div class="actions">
     <button class="btn ghost" id="btnRestart" title="Start a new game">↻ New</button>
     <button class="btn primary" id="btnMenu" title="Open settings menu">⚙ Menu</button>
+    <button class="btn ghost" id="btnPictures" title="Choose which pictures may appear">🖼 Pictures</button>
     <button class="btn ghost iconbtn" id="btnTheme" title="Switch theme">☀️</button>
     <button class="btn ghost iconbtn" id="btnSound" title="Toggle sound">🔊</button>
   </div>
@@ -61,7 +62,7 @@
     <div class="field">
       <label for="rngImages">Pictures used: <b id="valImages"></b></label>
       <input type="range" id="rngImages" min="4" max="10" step="1"/>
-      <p class="hint">Pick 4–10 of the 31 animal pictures.</p>
+      <p class="hint" id="imgHint">Pick 4–10 of the 31 animal pictures.</p>
     </div>
 
     <div class="field">
@@ -123,6 +124,21 @@
     <div class="row">
       <button class="btn primary big" id="btnPlayAgain">▶ Play again</button>
       <button class="btn ghost big" id="btnResSettings">⚙ Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= pictures picker ================= -->
+<div id="picOverlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="picTitle">
+  <div class="dialog">
+    <h2 id="picTitle">Pictures</h2>
+    <p class="hint">Click a picture to cross it out — crossed-out animals never appear on the board.
+      At least 10 pictures must stay available.</p>
+    <p id="picCount" class="picCount" aria-live="polite"></p>
+    <div id="picGrid"></div>
+    <div class="row">
+      <button class="btn ghost big" id="btnPicAll">Show all</button>
+      <button class="btn primary big" id="btnPicClose">Close</button>
     </div>
   </div>
 </div>

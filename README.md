@@ -44,6 +44,10 @@ bar switches between the dark and light palettes (choice is remembered).
 ## Settings
 - **Total cards:** even numbers, 10–62.
 - **Pictures used:** 4–10, drawn from the 31 animal sprites in `TileSprites/animals/`.
+- **Choose pictures:** the 🖼 **Pictures** button in the top bar opens every picture;
+  click one to cross it out — crossed-out animals are never dealt into games.
+  At least 10 pictures must stay available (the last 10 refuse to be crossed
+  out). The choice is remembered; "Show all" restores everything.
 - **Names on cards:** English or Polski — a language segment in the menu;
   every card carries both labels (`name` / `pl` in `SPRITES`), the switch
   updates cards on the board immediately and is remembered in settings.
@@ -74,6 +78,6 @@ bar switches between the dark and light palettes (choice is remembered).
 
 Extras: sound on/off toggle (synthesized, no audio files), dark/light theme
 toggle, Esc closes dialogs, responsive layout for smaller screens,
-`index.html?qa=menu` / `?qa=faces` / `?qa=all` / `?qa=light` /
-`?back=burgundy` / `?mode=vs` / `?total=62` / `?images=10` / `?lang=pl`
-debug views used for the screenshots above.
+`index.html?qa=menu` / `?qa=pics` / `?qa=faces` / `?qa=all` / `?qa=light` /
+`?back=burgundy` / `?mode=vs` / `?total=62` / `?images=10` / `?lang=pl` /
+`?block=Panda01,Wolf01` debug views used for the screenshots above.
