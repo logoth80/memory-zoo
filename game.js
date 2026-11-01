@@ -59,7 +59,7 @@ const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
 
 const LS_SETTINGS = 'memoryzoo.settings.v1';
-const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images" combo
+const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images"; vs record per "difficulty x total x images"
 
 const BACKS = ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'];
 const LANGS = ['en', 'pl'];
@@ -151,6 +151,7 @@ const sfx = new Sfx();
 let S = sanitizeSettings({ ...DEFAULTS, ...loadLS(LS_SETTINGS, {}) });
 let scores = loadLS(LS_SCORES, {});
 if (!scores.solo) scores.solo = {};   // key "totalCards x pictures" -> fewest moves
+if (!scores.vs) scores.vs = {};       // key "difficulty x total x pictures" -> {g,w,l,d,ps,cs}
 
 function sanitizeSettings(raw) {
   const s = {
@@ -526,13 +527,24 @@ async function finish() {
     if (p > c) { title = 'You beat the computer! 🏆'; sfx.win(); }
     else if (c > p) { title = 'The computer wins 🤖'; sfx.lose(); }
     else { title = "It's a draw 🤝"; sfx.tie(); }
+
+    // running record for THIS difficulty × board × pictures combination
+    const diff = difficultyKey();
+    const vk = diff + 'x' + G.total + 'x' + G.images;
+    const st = scores.vs[vk] || (scores.vs[vk] = { g: 0, w: 0, l: 0, d: 0, ps: 0, cs: 0 });
+    st.g++; st.ps += p; st.cs += c;
+    if (p > c) st.w++; else if (c > p) st.l++; else st.d++;
+    saveScores();
+
     $('#resTitle').textContent = title;
     $('#resBody').innerHTML =
       '<div class="scorecards">' +
         '<div class="sc"><b>' + p + '</b><span>Your pairs</span></div>' +
         '<div class="sc"><b>' + c + '</b><span>Computer pairs</span></div>' +
       '</div>' +
-      '<p class="resline">More pairs taken off the board wins.</p>';
+      '<p class="resline">More pairs taken off the board wins.</p>' +
+      '<p class="resline vsrec">Record vs ' + diff + ' (' + G.total + ' cards × ' + G.images + ' pictures): ' +
+        fmtVsRecord(st) + '</p>';
   }
   resultsEl.classList.remove('hidden');
 }
@@ -544,6 +556,7 @@ function setModeButtons() {
   });
   $('#diffBox').hidden = S.mode !== 'vs';
   $('#bestBox').hidden = S.mode !== 'solo';
+  $('#vsBox').hidden = S.mode !== 'vs';
   $('#modeHint').textContent = S.mode === 'solo'
     ? 'Match pairs yourself — the score counts how many moves you need.'
     : 'Take turns with the computer. A match lets you go again. More pairs wins.';
@@ -570,6 +583,7 @@ function syncMenu() {
   markPreset();
   setModeButtons();
   renderBests();
+  renderVsStats();
 }
 
 function markPreset() {
@@ -585,6 +599,32 @@ function renderBests() {
   const cur = scores.solo[S.total + 'x' + S.images];
   box.innerHTML = '<div class="bestrow cur"><span>Best for this exact setup (' + S.total + ' cards, ' + S.images + ' pictures):</span><b>' +
                   (cur != null ? cur + ' moves' : '— not played yet —') + '</b></div>';
+}
+
+// ------------------------------ vs Computer records per difficulty × setup ---
+// the difficulty name is the preset the sliders currently match; free slider
+// combinations count together as "Custom"
+function difficultyKey() {
+  let key = 'Custom';
+  document.querySelectorAll('#presetBtns button').forEach((b) => {
+    if (+b.dataset.p === S.p && +b.dataset.c === S.cap) key = b.dataset.d;
+  });
+  return key;
+}
+function fmtVsRecord(st) {
+  const avg = (n) => (n / st.g).toFixed(1);
+  return st.g + ' game' + (st.g === 1 ? '' : 's') +
+    ' · W/L ' + st.w + '–' + st.l + (st.d ? ' (' + st.d + ' draw' + (st.d > 1 ? 's' : '') + ')' : '') +
+    ' · avg you ' + avg(st.ps) + ' vs cpu ' + avg(st.cs);
+}
+function renderVsStats() {
+  // visibility handled by setModeButtons; these records only exist for vs play
+  if (S.mode !== 'vs') return;
+  const box = $('#vsBox');
+  const st = scores.vs[difficultyKey() + 'x' + S.total + 'x' + S.images];
+  box.innerHTML = '<div class="bestrow cur"><span>Record vs this exact setup (' + difficultyKey() +
+                  ', ' + S.total + ' cards, ' + S.images + ' pictures):</span><b>' +
+                  (st ? fmtVsRecord(st) : '— no games yet —') + '</b></div>';
 }
 
 $('#btnMenu').addEventListener('click', () => {
@@ -812,6 +852,10 @@ try {
   const blq = qp.get('block');
   if (blq) S.blocked = String(blq).split(',').map((x) => x.trim()).filter(Boolean);
   S = sanitizeSettings(S);
+  if (qp.get('vsdemo') === '1') {
+    // demo record for menu screenshots only (never saved by real play at boot)
+    scores.vs[difficultyKey() + 'x' + S.total + 'x' + S.images] = { g: 5, w: 3, l: 1, d: 1, ps: 27, cs: 13 };
+  }
 } catch (e) {}
 
 applyTheme();

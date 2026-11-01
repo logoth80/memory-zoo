@@ -30,7 +30,7 @@ class El {
 
 const byId = {};
 const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages', 'imgHint',
-  'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'modeHint',
+  'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'vsBox', 'modeHint',
   'picOverlay', 'picGrid', 'picCount', 'btnPictures', 'btnPicAll', 'btnPicClose',
   'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'langSeg', 'btnMenu', 'btnCloseMenu', 'btnStart',
   'btnRestart', 'btnPlayAgain', 'btnResSettings', 'btnSound', 'btnTheme'];
@@ -44,11 +44,11 @@ const modeBtns = [
   { dataset: { mode: 'vs' }, classList: new CL() },
 ];
 const presetBtns = [
-  { dataset: { p: '50', c: '3' }, classList: new CL() },
-  { dataset: { p: '60', c: '4' }, classList: new CL() },
-  { dataset: { p: '70', c: '5' }, classList: new CL() },
-  { dataset: { p: '80', c: '6' }, classList: new CL() },
-  { dataset: { p: '90', c: '7' }, classList: new CL() },
+  { dataset: { p: '50', c: '3', d: 'Novice' }, classList: new CL() },
+  { dataset: { p: '60', c: '4', d: 'Easy' }, classList: new CL() },
+  { dataset: { p: '70', c: '5', d: 'Medium' }, classList: new CL() },
+  { dataset: { p: '80', c: '6', d: 'Expert' }, classList: new CL() },
+  { dataset: { p: '90', c: '7', d: 'Master' }, classList: new CL() },
 ];
 const langBtns = [
   { dataset: { lang: 'en' }, classList: new CL() },
@@ -145,10 +145,12 @@ async function playOne(label) {
         console.error(label, 'FAIL: records section still renders heading/table'); process.exit(1);
       }
       console.log(label, '- records box: exact-setup row only OK');
-    } else if (!bb.hidden) {
-      console.error(label, 'FAIL: bestBox visible in vs mode'); process.exit(1);
     } else {
-      console.log(label, '- records box hidden in vs mode OK');
+      if (!bb.hidden) { console.error(label, 'FAIL: bestBox visible in vs mode'); process.exit(1); }
+      const vb = byId.vsBox;
+      if (vb.hidden) { console.error(label, 'FAIL: vsBox hidden in vs mode'); process.exit(1); }
+      if (!vb._html.includes('Record vs this exact setup')) { console.error(label, 'FAIL: no vs record row'); process.exit(1); }
+      console.log(label, '- records box hidden, vs record row shown OK');
     }
     byId.btnCloseMenu.listeners['click'][0]();
     if (!resHidden || !menuOpen) { console.error(label, 'FAIL: menu press left results popup open (resHidden=' + resHidden + ' menuOpen=' + menuOpen + ')'); process.exit(1); }
@@ -235,16 +237,32 @@ async function playOne(label) {
   const isSolo = (settings.mode || 'solo') === 'solo';
   const raw = store['memoryzoo.scores.v2'];
   console.log('scores store (v2):', raw);
+  let sc = null;
+  try { sc = JSON.parse(raw); } catch (e) {}
   if (isSolo) {
-    let sc = null;
-    try { sc = JSON.parse(raw); } catch (e) {}
     const keys = sc && sc.solo ? Object.keys(sc.solo) : [];
     const okFormat = keys.length >= 1 && keys.every((k) => /^\d+x\d+$/.test(k));
     // two games with the same settings must share ONE combo key
     if (!okFormat || new Set(keys).size < 1) { console.error('FAIL: bad/missing combo scores'); process.exit(1); }
+    if (sc.vs && Object.keys(sc.vs).length) { console.error('FAIL: solo games wrote vs records'); process.exit(1); }
     console.log('combo keys stored:', keys.join(', '));
-  } else if (raw) {
-    console.error('FAIL: vs game should not store scores'); process.exit(1);
+  } else {
+    // two completed vs games with the same settings -> ONE record entry:
+    // 2 games, w+l+d=2, player+cpu pair totals = 2 games x total/2 pairs
+    const vkeys = sc && sc.vs ? Object.keys(sc.vs) : [];
+    if (vkeys.length !== 1 || !/^[A-Za-z]+x\d+x\d+$/.test(vkeys[0])) { console.error('FAIL: bad vs record keys', vkeys); process.exit(1); }
+    const st = sc.vs[vkeys[0]];
+    const pairsPerGame = (settings.total || 16) / 2;
+    if (st.g !== 2 || st.w + st.l + st.d !== 2 || st.ps + st.cs !== 2 * pairsPerGame ||
+        st.w > st.g || st.l > st.g || st.d > st.g || st.ps < 0 || st.cs < 0) {
+      console.error('FAIL: bad vs record numbers', JSON.stringify(st)); process.exit(1);
+    }
+    if (sc.solo && Object.keys(sc.solo).length) { console.error('FAIL: vs games wrote solo scores'); process.exit(1); }
+    const avgP = (st.ps / st.g).toFixed(1), avgC = (st.cs / st.g).toFixed(1);
+    if (!byId.vsBox._html.includes(avgP) || !byId.vsBox._html.includes(avgC) || !byId.vsBox._html.includes(st.g + ' games')) {
+      console.error('FAIL: menu vs record row does not show stored averages'); process.exit(1);
+    }
+    console.log('vs record stored:', vkeys[0], JSON.stringify(st), '-> menu row shows', st.g, 'games, W/L', st.w + '–' + st.l + ', avg', avgP + ' vs ' + avgC);
   }
   process.exit(0);
 })().catch((e) => { console.error('ERROR', e); process.exit(1); });

@@ -40,6 +40,13 @@ bar switches between the dark and light palettes (choice is remembered).
      elsewhere on the board, flip that card;
   3. else flip the second card at random.
 - Whoever took more pairs off the board wins (draw is possible).
+- **Per-setup records:** every finished vs game is tracked for the exact
+  **difficulty preset × total cards × pictures** combination (slider values
+  matching no preset count together as "Custom"). The menu shows, for the
+  currently selected setup only: **games played, W/L record (draws noted)
+  and the average pair-score you vs the computer had across those games**.
+  The end-of-game popup repeats the same totals, updated with the game just
+  played. ![vs record](qa_vsrecord.png)
 
 ## Settings
 - **Total cards:** even numbers, 10–62.
@@ -80,4 +87,5 @@ Extras: sound on/off toggle (synthesized, no audio files), dark/light theme
 toggle, Esc closes dialogs, responsive layout for smaller screens,
 `index.html?qa=menu` / `?qa=pics` / `?qa=faces` / `?qa=all` / `?qa=light` /
 `?back=burgundy` / `?mode=vs` / `?total=62` / `?images=10` / `?lang=pl` /
-`?block=Panda01,Wolf01` debug views used for the screenshots above.
+`?block=Panda01,Wolf01` / `?vsdemo=1` (seeds a demo vs record) debug views
+used for the screenshots above.

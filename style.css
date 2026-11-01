@@ -536,6 +536,7 @@ html[data-theme="light"] .picTile{ background: #ffffff; }
 /* results specifics */
 .bigscore{ font-size: 46px; font-weight: 800; color: var(--dialog-h); margin: 10px 0 4px; }
 .resline{ font-size: 14.5px; font-weight: 700; margin: 6px 0; }
+.resline.vsrec{ font-size: 12.5px; font-weight: 600; color: var(--ink-dim); margin-top: 12px; }
 .newbest{
   display: inline-block;
   background: linear-gradient(150deg, #ffce54, #f0a93b);
