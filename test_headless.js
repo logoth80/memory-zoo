@@ -30,7 +30,7 @@ class El {
 
 const byId = {};
 const IDS = ['board', 'boardWrap', 'status', 'toast', 'menu', 'results', 'rngTotal', 'rngImages', 'imgHint',
-  'rngP', 'rngCap', 'valTotal', 'valImages', 'valP', 'valCap', 'diffBox', 'bestBox', 'vsBox', 'modeHint',
+  'rngP', 'rngCap', 'valTotal', 'valImages', 'diffBox', 'bestBox', 'vsBox', 'modeHint', 'diffInfo',
   'picOverlay', 'picGrid', 'picCount', 'btnPictures', 'btnPicAll', 'btnPicClose',
   'resTitle', 'resBody', 'modeSeg', 'presetBtns', 'backBtns', 'langSeg', 'btnMenu', 'btnCloseMenu', 'btnStart',
   'btnRestart', 'btnPlayAgain', 'btnResSettings', 'btnSound', 'btnTheme'];
@@ -233,6 +233,22 @@ async function playOne(label) {
   byId.btnPicClose.listeners['click'][0]();
   if (!byId.picOverlay.classList.contains('hidden')) { console.error('FAIL: Close did not hide picker'); process.exit(1); }
   console.log('show all + close OK');
+
+  if (!(settings.mode === 'solo')) {
+    // the top-bar record chip is shown during play for this exact setup
+    if (!/W\/L/.test(byId.status._html || '')) { console.error('FAIL: no record chip in HUD during vs play'); process.exit(1); }
+    // difficulty is preset-only: switching to Easy moves p/cap, the info line,
+    // the preset mark and the HUD chip; back to Medium the stats reappear
+    byId.presetBtns.listeners['click'][0]({ target: { closest: () => presetBtns[1] } });
+    const stEasy = JSON.parse(store['memoryzoo.settings.v1']);
+    if (stEasy.diff !== 'Easy' || stEasy.p !== 60 || stEasy.cap !== 4) { console.error('FAIL: Easy preset not persisted', JSON.stringify(stEasy)); process.exit(1); }
+    if (!presetBtns[1].classList.contains('on') || presetBtns[2].classList.contains('on')) { console.error('FAIL: preset mark not moved'); process.exit(1); }
+    if (!String(byId.diffInfo.textContent).includes('60%')) { console.error('FAIL: diff info line not updated'); process.exit(1); }
+    if (/W\/L/.test(byId.status._html || '')) { console.error('FAIL: chip for other difficulty still shown'); process.exit(1); }
+    byId.presetBtns.listeners['click'][0]({ target: { closest: () => presetBtns[2] } });
+    if (!/W\/L/.test(byId.status._html || '')) { console.error('FAIL: chip missing after switching back to Medium'); process.exit(1); }
+    console.log('preset switch: Easy (60%/4) marked + info updated + chip follows, back to Medium OK');
+  }
 
   const isSolo = (settings.mode || 'solo') === 'solo';
   const raw = store['memoryzoo.scores.v2'];

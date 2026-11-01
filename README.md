@@ -27,13 +27,17 @@ bar switches between the dark and light palettes (choice is remembered).
 ### 🤖 vs Computer
 - Take turns. A match means the same player goes again; a miss turns both
   cards back over and passes the turn.
-- The computer's difficulty (all adjustable, plus five presets
-  **Novice 50 %/3 · Easy 60 %/4 · Medium 70 %/5 · Expert 80 %/6 ·
-  Master 90 %/7**):
-  - **Remember chance:** 50–95 % per shown card. It tries to remember the
+- The computer's difficulty is exactly five presets
+  (**Novice 50 %/3 · Easy 60 %/4 · Medium 70 %/5 · Expert 80 %/6 ·
+  Master 90 %/7**) — there is nothing to fine-tune; the menu only *shows*
+  what the selected preset does:
+  - **Remember chance:** per shown card, the computer tries to remember the
     location of every card revealed during play (its own *and* the player's).
-  - **Memory size:** 3–7 cards. A newly remembered card evicts a random old
+  - **Memory size:** in cards. A newly remembered card evicts a random old
     memory entry.
+  Switching difficulty mid-game takes effect immediately — the AI and the
+  record chip follow the new preset. (Old saves from the removed sliders
+  migrate to the preset they matched, otherwise to Medium.)
 - Computer pick strategy (as specified):
   1. if its memory contains a matching pair → take those two cards;
   2. else flip one card it does *not* remember; if it remembers that picture
@@ -41,12 +45,14 @@ bar switches between the dark and light palettes (choice is remembered).
   3. else flip the second card at random.
 - Whoever took more pairs off the board wins (draw is possible).
 - **Per-setup records:** every finished vs game is tracked for the exact
-  **difficulty preset × total cards × pictures** combination (slider values
-  matching no preset count together as "Custom"). The menu shows, for the
-  currently selected setup only: **games played, W/L record (draws noted)
-  and the average pair-score you vs the computer had across those games**.
-  The end-of-game popup repeats the same totals, updated with the game just
-  played. ![vs record](qa_vsrecord.png)
+  **difficulty preset × total cards × pictures** combination (records exist
+  only for the five standard difficulties — there are no custom slider
+  settings anymore). The record shows **games played, W/L (draws noted) and
+  the average pair-score you vs the computer**. It is displayed twice: as a
+  dashed chip in the top bar **during play** (for the exact setup being
+  played, once at least one game finished) and as a row in the menu for the
+  currently selected setup; the end-of-game popup repeats the totals updated
+  with the game just played. ![vs record](qa_vsrecord.png) ![vs top bar](qa_vsbar.png)
 
 ## Settings
 - **Total cards:** even numbers, 10–62.

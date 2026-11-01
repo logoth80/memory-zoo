@@ -54,8 +54,16 @@ function activeSprites() { return SPRITES.filter((sp) => S.blocked.indexOf(sp.id
 const MIN_TOTAL = 10, MAX_TOTAL = 62;       // even numbers only
 const MIN_IMAGES = 4, MAX_IMAGES = 10;      // up to 10 of the 31 available animals per game
 const MIN_ACTIVE = 10;                      // pictures may be crossed out, but at least this many must stay
-const MIN_P = 50, MAX_P = 95;              // computer remember-chance, %
-const MIN_CAP = 3, MAX_CAP = 7;            // computer memory size, cards
+// Computer difficulty is EXACTLY these five presets (records are tracked per preset;
+// the menu shows their values as information only, nothing to fine-tune):
+const PRESETS = [
+  { d: 'Novice', p: 50, cap: 3 },
+  { d: 'Easy', p: 60, cap: 4 },
+  { d: 'Medium', p: 70, cap: 5 },
+  { d: 'Expert', p: 80, cap: 6 },
+  { d: 'Master', p: 90, cap: 7 },
+];
+const DEFAULT_DIFF = 'Medium';
 const FLIP_MS = 560, SHOW_MS = 800, PAIR_WAIT = FLIP_MS + 140;
 
 const LS_SETTINGS = 'memoryzoo.settings.v1';
@@ -63,7 +71,7 @@ const LS_SCORES   = 'memoryzoo.scores.v2';   // solo best per "total x images"; 
 
 const BACKS = ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'];
 const LANGS = ['en', 'pl'];
-const DEFAULTS = { mode: 'solo', total: 16, images: 6, p: 70, cap: 5, mute: false, theme: 'dark', backColor: 'blue', lang: 'en', blocked: [] };
+const DEFAULTS = { mode: 'solo', total: 16, images: 6, diff: DEFAULT_DIFF, mute: false, theme: 'dark', backColor: 'blue', lang: 'en', blocked: [] };
 
 // ------------------------------------------------ helpers ---
 const $ = (s) => document.querySelector(s);
@@ -158,8 +166,13 @@ function sanitizeSettings(raw) {
     mode: raw.mode === 'vs' ? 'vs' : 'solo',
     total: clamp(Math.round(raw.total ?? DEFAULTS.total), MIN_TOTAL, MAX_TOTAL),
     images: clamp(Math.round(raw.images ?? DEFAULTS.images), MIN_IMAGES, MAX_IMAGES),
-    p: clamp(Math.round(raw.p ?? DEFAULTS.p), MIN_P, MAX_P),
-    cap: clamp(Math.round(raw.cap ?? DEFAULTS.cap), MIN_CAP, MAX_CAP),
+    diff: (() => {
+      // only the five standard difficulties exist; old saves with free slider
+      // values migrate to the preset they match, otherwise to Medium
+      let pr = PRESETS.find((x) => x.d === raw.diff);
+      if (!pr) pr = PRESETS.find((x) => x.p === Math.round(raw.p) && x.cap === Math.round(raw.cap));
+      return (pr || PRESETS.find((x) => x.d === DEFAULT_DIFF)).d;
+    })(),
     mute: !!raw.mute,
     theme: raw.theme === 'light' ? 'light' : 'dark',
     backColor: ['blue', 'burgundy', 'brown', 'forest', 'plum', 'slate'].indexOf(raw.backColor) >= 0
@@ -169,6 +182,8 @@ function sanitizeSettings(raw) {
       ? [...new Set(raw.blocked.filter((id) => SPRITES.some((sp) => sp.id === id)))].slice(0, SPRITES.length - MIN_ACTIVE)
       : [],
   };
+  const pr = PRESETS.find((x) => x.d === s.diff);
+  s.p = pr.p; s.cap = pr.cap;   // AI parameters always come from the preset itself
   if (s.total % 2) s.total -= 1;
   s.total = Math.max(MIN_TOTAL, s.total);
   s.images = Math.min(s.images, Math.floor(s.total / 2), SPRITES.length - s.blocked.length, MAX_IMAGES);
@@ -481,11 +496,16 @@ function updateHUD() {
       '</div>';
   } else {
     const yourTurn = G.turn === 'player' && !G.over;
+    // live record for this exact difficulty × board × pictures (only once games were played)
+    const st = scores.vs[S.diff + 'x' + G.total + 'x' + G.images];
     statusEl.innerHTML =
       '<div class="chips">' +
         '<span class="chip me' + (yourTurn ? ' active' : '') + '">🧑 You: <b>' + G.taken.player + '</b></span>' +
         '<span class="chip turn">vs</span>' +
         '<span class="chip cpu' + (G.turn === 'cpu' && !G.over ? ' active' : '') + '">🤖 Computer: <b>' + G.taken.cpu + '</b></span>' +
+        (st ? '<span class="chip rec" title="Record vs ' + S.diff + ', ' + G.total + ' cards × ' + G.images + ' pictures">📊 vs ' + S.diff +
+              ': ' + st.g + ' game' + (st.g === 1 ? '' : 's') + ' · W/L ' + st.w + '–' + st.l +
+              (st.d ? ' + ' + st.d + 'D' : '') + ' · avg ' + (st.ps / st.g).toFixed(1) + '–' + (st.cs / st.g).toFixed(1) + '</span>' : '') +
         '<span class="chip">' + (G.over ? 'Game over' : (yourTurn ? 'Your turn' : 'Computer thinking…')) + '</span>' +
       '</div>';
   }
@@ -503,6 +523,16 @@ function toast(msg) {
 async function finish() {
   if (G.over) return;
   G.over = true;
+
+  // record first, so the "Game over" HUD already shows the updated chip
+  let st = null;
+  if (G.mode !== 'solo') {
+    const vk = difficultyKey() + 'x' + G.total + 'x' + G.images;
+    st = scores.vs[vk] || (scores.vs[vk] = { g: 0, w: 0, l: 0, d: 0, ps: 0, cs: 0 });
+    st.g++; st.ps += G.taken.player; st.cs += G.taken.cpu;
+    if (G.taken.player > G.taken.cpu) st.w++; else if (G.taken.cpu > G.taken.player) st.l++; else st.d++;
+    saveScores();
+  }
   updateHUD();
   await sleep(450);
 
@@ -528,13 +558,8 @@ async function finish() {
     else if (c > p) { title = 'The computer wins 🤖'; sfx.lose(); }
     else { title = "It's a draw 🤝"; sfx.tie(); }
 
-    // running record for THIS difficulty × board × pictures combination
+    // the running record was already updated above; repeat it in the popup
     const diff = difficultyKey();
-    const vk = diff + 'x' + G.total + 'x' + G.images;
-    const st = scores.vs[vk] || (scores.vs[vk] = { g: 0, w: 0, l: 0, d: 0, ps: 0, cs: 0 });
-    st.g++; st.ps += p; st.cs += c;
-    if (p > c) st.w++; else if (c > p) st.l++; else st.d++;
-    saveScores();
 
     $('#resTitle').textContent = title;
     $('#resBody').innerHTML =
@@ -576,10 +601,7 @@ function syncMenu() {
   $('#valTotal').textContent = S.total + ' cards';
   $('#valImages').textContent = S.images + ' pictures';
   $('#imgHint').textContent = 'Pick 4–10 of the ' + (SPRITES.length - S.blocked.length) + ' available animal pictures.';
-  $('#rngP').value = String(S.p);
-  $('#rngCap').value = String(S.cap);
-  $('#valP').textContent = S.p + '%';
-  $('#valCap').textContent = S.cap;
+  updateDiffInfo();
   markPreset();
   setModeButtons();
   renderBests();
@@ -588,8 +610,15 @@ function syncMenu() {
 
 function markPreset() {
   document.querySelectorAll('#presetBtns button').forEach((b) => {
-    b.classList.toggle('on', +b.dataset.p === S.p && +b.dataset.c === S.cap);
+    b.classList.toggle('on', b.dataset.d === S.diff);
   });
+}
+
+// the difficulty sliders are gone: the preset values are shown as information only
+function updateDiffInfo() {
+  const pr = PRESETS.find((x) => x.d === S.diff) || PRESETS[2];
+  $('#diffInfo').textContent = 'Remember chance: ' + pr.p + '% · remembers at most: ' + pr.cap +
+    ' cards (a new one evicts a random old memory).';
 }
 
 function renderBests() {
@@ -602,15 +631,9 @@ function renderBests() {
 }
 
 // ------------------------------ vs Computer records per difficulty × setup ---
-// the difficulty name is the preset the sliders currently match; free slider
-// combinations count together as "Custom"
-function difficultyKey() {
-  let key = 'Custom';
-  document.querySelectorAll('#presetBtns button').forEach((b) => {
-    if (+b.dataset.p === S.p && +b.dataset.c === S.cap) key = b.dataset.d;
-  });
-  return key;
-}
+// difficulty is always one of the five standard presets — records exist only
+// for those, never for made-up slider combinations
+function difficultyKey() { return S.diff; }
 function fmtVsRecord(st) {
   const avg = (n) => (n / st.g).toFixed(1);
   return st.g + ' game' + (st.g === 1 ? '' : 's') +
@@ -739,20 +762,12 @@ $('#rngImages').addEventListener('input', (e) => {
 
 $('#presetBtns').addEventListener('click', (e) => {
   const b = e.target.closest('button');
-  if (!b) return;
-  S.p = clamp(+b.dataset.p, MIN_P, MAX_P);
-  S.cap = clamp(+b.dataset.c, MIN_CAP, MAX_CAP);
-  saveSettings(); syncMenu(); sfx.ui();
-});
-
-$('#rngP').addEventListener('input', (e) => {
-  S.p = clamp(parseInt(e.target.value, 10) || MIN_P, MIN_P, MAX_P);
-  saveSettings(); $('#valP').textContent = S.p + '%'; markPreset();
-});
-
-$('#rngCap').addEventListener('input', (e) => {
-  S.cap = clamp(parseInt(e.target.value, 10) || MIN_CAP, MIN_CAP, MAX_CAP);
-  saveSettings(); $('#valCap').textContent = S.cap; markPreset();
+  const pr = b && PRESETS.find((x) => x.d === b.dataset.d);
+  if (!pr) return;
+  S.diff = pr.d; S.p = pr.p; S.cap = pr.cap;
+  saveSettings(); syncMenu();
+  if (G && !G.over) updateHUD();   // switching mid-game moves the record chip to the new difficulty
+  sfx.ui();
 });
 
 $('#btnStart').addEventListener('click', () => {

@@ -152,6 +152,7 @@ body{
 .chip.me.active{ border-color: #3f86c2; box-shadow: 0 0 0 3px rgba(63,134,194,.30); background: var(--chip-me-bg); }
 .chip.cpu.active{ border-color: #9a6ad0; box-shadow: 0 0 0 3px rgba(154,106,208,.30); background: var(--chip-cpu-bg); }
 .chip.best{ color: var(--chip-best-ink); background: var(--chip-best-bg); }
+.chip.rec{ border-style: dashed; color: var(--ink-dim); font-weight: 600; }
 
 .actions{ display: flex; gap: 8px; }
 
@@ -447,6 +448,7 @@ input[type=range]::-moz-range-thumb{
 }
 .presets button:hover{ background: var(--preset-hover); }
 .presets button.on{ background: #2e9e6b; color: #fff; border-color: #2e9e6b; }
+.diffinfo{ font-size: 13px; font-weight: 600; color: var(--ink-dim); margin: 4px 0 10px; }
 
 /* card-back color picker */
 .swatches{ display: flex; gap: 10px; flex-wrap: wrap; }
