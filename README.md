@@ -4,12 +4,23 @@ A kids' memory game: a top-down board of square cards, all picture-side down.
 Pick two cards — if they show the same animal they come off the board, if not
 they turn back face-down.
 
+**▶ Play it right now: <https://logoth80.github.io/memory-zoo/>**
+
 ![board](qa_board.png) ![faces](qa_faces.png)
 
 ## Run it
 
 Just open **`index.html`** in any modern browser (double-click it — no server
 or build step needed; all assets are local files).
+
+Or serve it straight from GitHub Pages: the site above is published from
+this repository's `main` branch (Settings → Pages → *Deploy from a branch*),
+so every push to `main` redeploys it in about a minute.
+
+Note: high scores, records and settings live in the browser's localStorage
+**per origin** — scores earned while playing the local `index.html` and
+scores earned on the GitHub Pages site are separate, and on the public site
+each visitor keeps their own records in their own browser.
 
 The game starts in a **dark theme** by default; the ☀️/🌙 button in the top
 bar switches between the dark and light palettes (choice is remembered).
