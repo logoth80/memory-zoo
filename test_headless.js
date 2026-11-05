@@ -14,7 +14,7 @@ class CL {
 class El {
   constructor(tag) {
     this.tag = tag; this.children = []; this.dataset = {}; this.attrs = {};
-    this.classList = new CL(); this.style = { setProperty() {} };
+    this.classList = new CL(); this.style = { props: {}, setProperty(k, v) { this.props[k] = String(v); } };
     this._html = ''; this._text = ''; this.hidden = false;
     this.listeners = {}; this.value = '';
     this.clientWidth = 1400; this.clientHeight = 800;
@@ -249,6 +249,19 @@ async function playOne(label) {
     if (!/W\/L/.test(byId.status._html || '')) { console.error('FAIL: chip missing after switching back to Medium'); process.exit(1); }
     console.log('preset switch: Easy (60%/4) marked + info updated + chip follows, back to Medium OK');
   }
+
+  // orientation-aware grids: on a portrait phone a new 40-card game must be
+  // TALL (5 cols x 8 rows), while landscape stays wide (8 cols x 5 rows)
+  byId.rngTotal.listeners['input'][0]({ target: { value: '40' } });
+  global.window.innerWidth = 390; global.window.innerHeight = 844;
+  byId.btnRestart.listeners['click'][0]();
+  if (byId.board.style.props['--cols'] !== '5') { console.error('FAIL: portrait board not tall (--cols=' + byId.board.style.props['--cols'] + ')'); process.exit(1); }
+  global.window.innerWidth = 844; global.window.innerHeight = 390;
+  byId.btnRestart.listeners['click'][0]();
+  if (byId.board.style.props['--cols'] !== '8') { console.error('FAIL: landscape board no longer wide (--cols=' + byId.board.style.props['--cols'] + ')'); process.exit(1); }
+  global.window.innerWidth = 1400; global.window.innerHeight = 800;
+  byId.rngTotal.listeners['input'][0]({ target: { value: String(settings.total || 16) } });
+  console.log('grid orientation: 40 cards -> 5x8 portrait / 8x5 landscape OK');
 
   const isSolo = (settings.mode || 'solo') === 'solo';
   const raw = store['memoryzoo.scores.v2'];

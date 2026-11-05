@@ -197,18 +197,21 @@ function saveScores() { saveLS(LS_SCORES, scores); }
 let G = null;
 let GAME_GEN = 0;
 
-function gridDims(total) {
-  // Prefer an exact-factor rectangle with a pleasant aspect (~1.3:1);
-  // otherwise use a near-square grid and sprinkle a few empty holes.
+function gridDims(total, portrait) {
+  // Prefer an exact-factor rectangle with a pleasant aspect (~1.3:1 landscape;
+  // in portrait the mirror ~1:1.3 — tall screens get tall grids, e.g. 40 cards
+  // become 5 cols × 8 rows instead of 8 × 5); otherwise use a near-square grid
+  // and sprinkle a few empty holes.
+  const target = portrait ? 1 / 1.3 : 1.3;
   let best = null;
   for (let c = 2; c <= Math.floor(total / 2); c++) {
     if (total % c) continue;
     const r = total / c;
-    const cost = Math.abs(Math.log((c / r) / 1.3));
+    const cost = Math.abs(Math.log((c / r) / target));
     if (!best || cost < best.cost) best = { cols: c, rows: r, cost };
   }
   if (best && best.cost <= 1.15) return { cols: best.cols, rows: best.rows, gaps: 0 };
-  const cols = Math.max(2, Math.ceil(Math.sqrt(total * 1.3)));
+  const cols = Math.max(2, Math.ceil(Math.sqrt(total * target)));
   const rows = Math.ceil(total / cols);
   return { cols, rows, gaps: cols * rows - total };
 }
@@ -230,8 +233,9 @@ function startGame() {
   });
   shuffle(deck);
 
-  // build grid
-  const dims = gridDims(total);
+  // build grid — tall grids when the screen is held vertically
+  const portrait = (window.innerHeight || 0) > (window.innerWidth || 0);
+  const dims = gridDims(total, portrait);
   const slots = dims.cols * dims.rows;
   const holeSet = new Set();
   if (dims.gaps > 0) {
@@ -313,7 +317,14 @@ function layout() {
   const availH = window.innerHeight - hudH - 36 - pad;
   let tile = Math.floor(Math.min((availW - (cols - 1) * gap) / cols,
                                  (availH - (rows - 1) * gap) / rows));
-  tile = clamp(tile, 46, 140);
+  tile = clamp(tile, 36, 140);
+  if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('qa') === 'dbg') {   // layout diagnostics for QA runs
+    const t = $('#toast');
+    if (t) t.textContent = JSON.stringify({
+      innerW: window.innerWidth, innerH: window.innerHeight,
+      wrapW: wrap.clientWidth, hudH: hudH, cols, rows, gap, tile,
+    });
+  }
   document.documentElement.style.setProperty('--tile', tile + 'px');
   document.documentElement.style.setProperty('--gap', gap + 'px');
 }
@@ -491,7 +502,7 @@ function updateHUD() {
     statusEl.innerHTML =
       '<div class="chips">' +
         '<span class="chip">🎯 Moves: <b>' + G.moves + '</b></span>' +
-        '<span class="chip">Found: <b>' + found + '</b>/' + totalPairs + '</span>' +
+        '<span class="chip">✅ <span class="l-full">Found: </span><b>' + found + '</b>/' + totalPairs + '</span>' +
         (best != null ? '<span class="chip best">Best (' + G.total + '×' + G.images + '): <b>' + best + '</b></span>' : '') +
       '</div>';
   } else {
@@ -502,11 +513,11 @@ function updateHUD() {
       '<div class="chips">' +
         '<span class="chip me' + (yourTurn ? ' active' : '') + '">🧑 You: <b>' + G.taken.player + '</b></span>' +
         '<span class="chip turn">vs</span>' +
-        '<span class="chip cpu' + (G.turn === 'cpu' && !G.over ? ' active' : '') + '">🤖 Computer: <b>' + G.taken.cpu + '</b></span>' +
+        '<span class="chip cpu' + (G.turn === 'cpu' && !G.over ? ' active' : '') + '">🤖 <span class="l-full">Computer</span><span class="l-short">CPU</span>: <b>' + G.taken.cpu + '</b></span>' +
         (st ? '<span class="chip rec" title="Record vs ' + S.diff + ', ' + G.total + ' cards × ' + G.images + ' pictures">📊 vs ' + S.diff +
               ': ' + st.g + ' game' + (st.g === 1 ? '' : 's') + ' · W/L ' + st.w + '–' + st.l +
               (st.d ? ' + ' + st.d + 'D' : '') + ' · avg ' + (st.ps / st.g).toFixed(1) + '–' + (st.cs / st.g).toFixed(1) + '</span>' : '') +
-        '<span class="chip">' + (G.over ? 'Game over' : (yourTurn ? 'Your turn' : 'Computer thinking…')) + '</span>' +
+        '<span class="chip turntxt">' + (G.over ? 'Game over' : (yourTurn ? 'Your turn' : 'Computer thinking…')) + '</span>' +
       '</div>';
   }
 }

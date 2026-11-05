@@ -86,8 +86,25 @@ bar switches between the dark and light palettes (choice is remembered).
   pairs 3,3,3,3,2 → cards **6,6,6,6,4** (note: the request's example
   6+6+6+4+4 = 26 doesn't add up to 28; this game always sums exactly to the
   chosen total and never uses an odd count of a picture).
-- Board layout picks near-square / nice-rectangle grids (46 cards → 8×6 with
-  two random empty spots, 62 cards → 9×7 with one, etc.).
+- Board layout checks the screen **on every new game**: landscape screens get
+  wide grids, portrait screens get tall ones (40 cards → 5×8 on a phone,
+  8×5 on a desktop). Exact factors are preferred with a pleasant aspect;
+  otherwise near-square grids with a few random empty spots (46 cards → 8×6
+  with two holes, 62 cards → 9×7 with one, etc.).
+
+### Phone (portrait) mode
+
+Held vertically on a narrow screen the game reorganizes itself:
+
+- the top bar stays **one slim line** — the game name is hidden and only
+  the essentials remain: score chips ("Found:" collapses to ✅ 0/8,
+  "Computer" to CPU) and icon-only buttons;
+- the record chip and the "Computer thinking…" text are hidden (whose turn
+  it is still shows as the glowing active player chip) — so nothing wraps
+  to a second line and the board never gets pushed down;
+- new games use tall grids as above, sized to the visible area.
+
+![portrait](qa_portrait.png) ![portrait 40 cards](qa_portrait40.png) ![portrait vs](qa_portrait_vs.png)
 
 ## Files
 | File | Purpose |
@@ -96,13 +113,14 @@ bar switches between the dark and light palettes (choice is remembered).
 | `style.css` | felt board, paw-print card backs, flip/match/shake animations, menu |
 | `game.js` | game logic, computer AI, high scores, WebAudio sound effects |
 | `test_headless.js` | dev smoke-test: plays full games in a stub DOM (`node test_headless.js '{"mode":"vs","total":16,"images":6}'`) |
+| `qa_shoot.js` | dev helper: exact-size browser screenshots via CDP device metrics — headless `--window-size` can't go below ~500 px wide, phones can (`node qa_shoot.js out.png <url> 390 844`) |
 | `TileSprites/animals/` | the 31 card pictures (drop in more PNGs and add an entry with `id`, English `name` and Polish `pl` to `SPRITES` at the top of `game.js` to use them) |
 | `prepare_sprites.py` | dev helper: cuts raw photos from `TileSprites/raw/` into transparent, square `*01.png` sprites (`python prepare_sprites.py`) |
 | `qa_*.png` | visual QA screenshots (safe to delete) |
 
 Extras: sound on/off toggle (synthesized, no audio files), dark/light theme
 toggle, Esc closes dialogs, responsive layout for smaller screens,
-`index.html?qa=menu` / `?qa=pics` / `?qa=faces` / `?qa=all` / `?qa=light` /
+`index.html?qa=menu` / `?qa=pics` / `?qa=faces` / `?qa=all` / `?qa=light` / `?qa=dbg` (dumps the board-layout budget into a toast) /
 `?back=burgundy` / `?mode=vs` / `?total=62` / `?images=10` / `?lang=pl` /
 `?block=Panda01,Wolf01` / `?vsdemo=1` (seeds a demo vs record) debug views
 used for the screenshots above.
